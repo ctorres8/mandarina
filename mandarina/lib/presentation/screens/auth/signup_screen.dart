@@ -225,7 +225,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         minimumSize: const Size(double.infinity, 60), 
                         padding: EdgeInsets.zero, 
                       ),
-                      onPressed: (){context.pushNamed(HomeScreen.name);}, // TODO: Ingresar con Google
+                      onPressed: (){context.goNamed(HomeScreen.name);}, // TODO: Ingresar con Google
                       child: const Text(
                         'Ingresar con Google',
                         style: TextStyle(

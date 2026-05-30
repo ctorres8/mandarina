@@ -10,11 +10,18 @@ class PomoNotifier extends Notifier<PomoState>{
   @override
   PomoState build() {
     // TODO: implement build
-    ref.onDispose(()=> _timer?.cancel()); // Limpio el timer al cerrar el notifier (o la app)
+    ref.onDispose(() {
+      _timer?.cancel();
+      _cancelTimer?.cancel();
+      _holdingProgressTimer?.cancel();
+    }); // Limpio el timer al cerrar el notifier (o la app)
     return PomoState();
   }
 
   Timer? _timer;
+  Timer? _cancelTimer;
+  Timer? _holdingProgressTimer;
+  bool _justCancelled = false;
 
   /*
   void startStopTimer(){
@@ -34,8 +41,20 @@ class PomoNotifier extends Notifier<PomoState>{
     }
   }
 
+  void runTimer(){
+    if(_justCancelled){
+      _justCancelled = false;
+      return;
+    }
+
+    if(state.isRunning) return;
+
+    _startTimer();
+  }
+
   void _startTimer()
   {
+
     const oneSecond = Duration(seconds: 1);
 
     state = state.copyWith(isRunning: true); // pongo el estado como corriendo
@@ -56,6 +75,7 @@ class PomoNotifier extends Notifier<PomoState>{
     );
   }
 
+
   void _stopTimer(){
     _timer?.cancel();
     state = state.copyWith(isRunning: false);
@@ -64,6 +84,51 @@ class PomoNotifier extends Notifier<PomoState>{
   void resetTimer(){
     _stopTimer();
     state=state.copyWith(focusedTime:1500.0); //reseteo con 25 minutos
+  }
+
+  void startCancelCountdown(){
+    //_cancelTimer?.cancel(); // Cancelo cualquier instancia huerfana previa
+    _holdingProgressTimer?.cancel();
+    _justCancelled = false;
+
+    /*
+    _cancelTimer = Timer(const Duration(seconds: 1),(){
+      _justCancelled = true;
+      _holdingProgressTimer?.cancel();
+      resetTimer();
+    }); // Luego de 1 segundo reinicia el cronómetro
+    */
+    state = state.copyWith(holdingProgress: 0.0);
+
+    const int tickIntervalMs = 30;
+    double nextProgress = 0.0;
+
+    _holdingProgressTimer = Timer.periodic(const Duration(milliseconds: tickIntervalMs), (timer){
+      nextProgress += tickIntervalMs / 1000.0;
+      if(nextProgress>= 1.0){
+        timer.cancel();
+        _justCancelled = true;
+        state = state.copyWith(holdingProgress: 0.0); //limpio la barra de carga
+        resetTimer(); //reseteo el timer
+      }
+      else{
+        state = state.copyWith(holdingProgress: nextProgress);
+      }
+    });
+  }
+
+  void stopCancelCoundown(){
+    // Se ejecuta si se levanta el dedo antes de cumplir el tiempo de cancelación (1 segundo)
+    /*
+    if(_cancelTimer != null && _cancelTimer!.isActive){
+      _cancelTimer!.cancel();
+    }
+    */
+    if(_holdingProgressTimer != null && _holdingProgressTimer!.isActive)
+    {
+      _holdingProgressTimer!.cancel();
+    }
+    state = state.copyWith(holdingProgress: 0.0);
   }
 
   // Selecciono la tarea elegida

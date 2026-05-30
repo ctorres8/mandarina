@@ -8,6 +8,7 @@ class PomoState {
   final Activity activity;
   final double focusedTime;
   final bool isRunning;
+  final double holdingProgress;
 
   // Constructor con valores por defecto
   PomoState({
@@ -15,6 +16,7 @@ class PomoState {
     this.activity=Activity.work,
     this.focusedTime=1500.0, // 25 minutos en segundos
     this.isRunning=false,
+    this.holdingProgress = 0.0,
   }) : currentTask = currentTask ?? taskList.first;
 
   //getters
@@ -28,13 +30,15 @@ class PomoState {
     Task? currentTask,
     Activity? activity,
     double? focusedTime,
-    bool? isRunning
+    bool? isRunning,
+    double? holdingProgress,
   }){
     return PomoState(
       currentTask: currentTask ?? this.currentTask,
       activity: activity ?? this.activity,
       focusedTime: focusedTime ?? this.focusedTime,
       isRunning: isRunning ?? this.isRunning,
+      holdingProgress: holdingProgress ?? this.holdingProgress,
     );
   }
 

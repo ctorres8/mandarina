@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
@@ -29,55 +30,142 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final PomoState pomoState = ref.watch(pomoProvider);
     final PomoNotifier pomoNotifier = ref.read(pomoProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: MandarinaAppTheme.primaryColor,
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
-        title: Image.asset('assets/images/logo_blanco.png',scale:18,),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomRight,
+          end: Alignment.topLeft,
+          colors: [
+            MandarinaAppTheme.primaryOrangeColor,
+            MandarinaAppTheme.primaryColor,
+            //MandarinaAppTheme.primaryOrangeColor,
+
+          ],
+          stops: const [0.1, 0.7],
+        ),
       ),
-      drawer: DrawerMenu(),
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              const SizedBox(height: 70,),
-              _taskIcon(),
-              const SizedBox(height: 30,),
-              _cronometer(pomoState,pomoNotifier),
-              const SizedBox(height: 30,),
-              Text(
-                ref.watch(pomoProvider.notifier).formatTime(), //Tiempo en String
-                style: GoogleFonts.quicksand(
-                  color: MandarinaAppTheme.whiteColor,
-                  fontSize: 108,
-                  fontWeight: FontWeight.w500
-                )
-              ),
-              const SizedBox(height: 30,),
-              ElevatedButton(
-                onPressed: () => pomoNotifier.toggleTimer(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: pomoState.isRunning? MandarinaAppTheme.accentColor : MandarinaAppTheme.secondaryColor,
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size(260, 60)
-                ),
-                child: Text(
-                  pomoState.isRunning? "STOP!":"START!",
+      child: Scaffold(
+        backgroundColor: Colors.transparent,//MandarinaAppTheme.primaryColor,
+        appBar: AppBar(
+          iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
+          title: Image.asset('assets/images/logo_blanco.png',scale:18,),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+        ),
+        drawer: DrawerMenu(),
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                const SizedBox(height: 70,),
+                _taskIcon(),
+                const SizedBox(height: 30,),
+                _cronometer(pomoState,pomoNotifier),
+                const SizedBox(height: 30,),
+                Text(
+                  ref.watch(pomoProvider.notifier).formatTime(), //Tiempo en String
                   style: GoogleFonts.quicksand(
-                    fontSize: 35, 
-                    fontWeight: FontWeight.w700,
-                    color: pomoState.isRunning? MandarinaAppTheme.whiteColor : MandarinaAppTheme.accentColor,
+                    color: MandarinaAppTheme.whiteBisColor,
+                    fontSize: 100,
+                    fontWeight: FontWeight.w600,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        offset: Offset(0, 1),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  )
+                ),
+                const SizedBox(height: 30,),
+
+                GestureDetector(
+                  onTap: () =>  pomoNotifier.runTimer(),
+                  onTapDown: (_) => pomoNotifier.startCancelCountdown(),
+                  onTapUp: (_) => pomoNotifier.stopCancelCoundown(),
+                  onTapCancel: ()=> pomoNotifier.stopCancelCoundown(),
+                  child: Container(
+                    width: 100,//280,
+                    height: 100,//60,
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: MandarinaAppTheme.whiteBisColor,
+                      //borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 280 * pomoState.holdingProgress,
+                            decoration: BoxDecoration(
+                              color: MandarinaAppTheme.accentColor.withValues(alpha:0.7),
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: FaIcon(
+                            pomoState.isRunning? FontAwesomeIcons.xmark : FontAwesomeIcons.play,
+                            color: MandarinaAppTheme.primaryOrangeColor,
+                            size: 48,
+                          ),
+                        ),
+                      ]
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        )
+
+                const SizedBox(height: 12),
+
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: pomoState.isRunning ? 1.0 : 0.0,
+                  child: Text(
+                    "Mantén presionado 1s para abortar el pomodoro.",
+                    style: GoogleFonts.quicksand(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: MandarinaAppTheme.whiteColor.withValues(alpha: 0.8),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                /*
+                ElevatedButton(
+                  onPressed: () => pomoNotifier.toggleTimer(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: pomoState.isRunning? MandarinaAppTheme.accentColor : MandarinaAppTheme.secondaryColor,
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size(260, 60)
+                  ),
+                  child: Text(
+                    pomoState.isRunning? "STOP!":"START!",
+                    style: GoogleFonts.quicksand(
+                      fontSize: 35, 
+                      fontWeight: FontWeight.w700,
+                      color: pomoState.isRunning? MandarinaAppTheme.whiteColor : MandarinaAppTheme.accentColor,
+                    ),
+                  ),
+                ),
+                */
+              ],
+            ),
+          )
+        ),
       ),
     );
   }
@@ -119,11 +207,14 @@ Widget _taskIcon() {
         alignment: AlignmentDirectional.center,
         children: [
           Container(
-            width: 270, height: 270,
-            decoration: const BoxDecoration(shape: BoxShape.circle,color: Color.fromRGBO(251, 226, 187,0.95)),
+            width: 230, height: 230,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: MandarinaAppTheme.whiteBisColor,//Color.fromRGBO(251, 226, 187,0.95)
+            ),
           ),
           Container(
-            width: 235, height: 235,      
+            width: 200, height: 200,      
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(color: Colors.black.withOpacity(0.02)),
@@ -137,14 +228,15 @@ Widget _taskIcon() {
             appearance: CircularSliderAppearance(
               spinnerMode: false,
               customWidths: CustomSliderWidths(
-                trackWidth: 12,
-                handlerSize: 15,
-                progressBarWidth: 15,
+                trackWidth: 6,
+                handlerSize: 16,
+                progressBarWidth: 14,
                 shadowWidth: 0,
               ),
               customColors: CustomSliderColors(
-                trackColor: MandarinaAppTheme.secondaryColor,
-                progressBarColor: MandarinaAppTheme.accentColor,
+                trackColor: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.2),//MandarinaAppTheme.accentColor,
+                progressBarColor: MandarinaAppTheme.secondaryColor,//MandarinaAppTheme.accentColor,
+                dotColor: MandarinaAppTheme.whiteBisColor,
                 hideShadow: true,
               ),
               size: 280,

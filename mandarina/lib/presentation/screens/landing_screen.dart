@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/screens/auth/login_screen.dart';
 import 'package:mandarina/presentation/screens/auth/signup_screen.dart';
@@ -24,6 +25,7 @@ class _LandingScreenView extends StatelessWidget {
     return Scaffold(
       // Usamos el primaryColor que definiste en tu MandarinaAppTheme
       backgroundColor: MandarinaAppTheme.primaryColor,//colors.primary, 
+      extendBodyBehindAppBar: true,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Column(
@@ -49,15 +51,15 @@ class _LandingScreenView extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 elevation: 0.5,
-                backgroundColor: MandarinaAppTheme.accentColor,//colors.tertiary,
-                foregroundColor: MandarinaAppTheme.whiteColor,//colors.onTertiary,
+                backgroundColor: MandarinaAppTheme.secondaryColor,//colors.tertiary,
+                foregroundColor: MandarinaAppTheme.accentColor,//colors.onTertiary,
                 minimumSize: const Size(double.infinity, 60), 
                 padding: EdgeInsets.zero, 
               ),
               onPressed: () => context.pushNamed(SignupScreen.name), // TODO: Ir a registrarse
-              child: const Text(
+              child: Text(
                 '¡Empecemos ahora!',
-                style: TextStyle(
+                style: GoogleFonts.quicksand(
                   fontSize: 25,
                   fontWeight: FontWeight.w600,
                   height: 1,
@@ -80,9 +82,9 @@ class _LandingScreenView extends StatelessWidget {
                 padding: EdgeInsets.zero, 
               ),
               onPressed: ()=> context.pushNamed(LoginScreen.name), // Ir al login
-              child: const Text(
+              child: Text(
                 'Ya tengo cuenta',
-                style: TextStyle(
+                style: GoogleFonts.quicksand(
                   fontSize: 25,
                   fontWeight: FontWeight.w600,
                   ),

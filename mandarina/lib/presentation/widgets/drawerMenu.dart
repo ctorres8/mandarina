@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
+import 'package:mandarina/presentation/screens/about_screen.dart';
+import 'package:mandarina/presentation/screens/freelancer_screen.dart';
+import 'package:mandarina/presentation/screens/pet_screen.dart';
+import 'package:mandarina/presentation/screens/profile_screen.dart';
+import 'package:mandarina/presentation/screens/settings_screen.dart';
 
 class DrawerMenu extends StatelessWidget {
   const DrawerMenu({super.key,});
@@ -18,14 +24,59 @@ class DrawerMenu extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildMenuItem(Icons.home_rounded, 'Inicio', true),
-                _buildMenuItem(Icons.person, 'Mi Perfil', false),
+                _buildMenuItem(
+                  Icons.home_rounded, 
+                  'Inicio', 
+                  true,
+                  onTap: ()=> context.pop(),
+                ),
+                _buildMenuItem(
+                  Icons.person, 
+                  'Mi Perfil', 
+                  false,
+                  onTap: (){
+                    context.pop();
+                    context.pushNamed(ProfileScreen.name);
+                  }
+                ),
                 _buildMenuItem(Icons.bar_chart_rounded, 'Historial', false),
-                _buildMenuItem(Icons.auto_graph, 'Workflow', false),
-                _buildMenuItem(Icons.pets, 'Mandarina PET', false),
-                _buildMenuItem(Icons.info, 'Sobre Mandarina', false),
+                _buildMenuItem(
+                  Icons.auto_graph, 
+                  'Workflow', 
+                  false,
+                  onTap: (){
+                    context.pop();
+                    context.pushNamed(FreelancerScreen.name);
+                  }
+                ),
+                _buildMenuItem(
+                  Icons.pets, 
+                  'Mandarina PET', 
+                  false,
+                  onTap: (){
+                    context.pop();
+                    context.pushNamed(PetScreen.name);
+                  }
+                ),
+                _buildMenuItem(
+                  Icons.info, 
+                  'Sobre Mandarina', 
+                  false,
+                  onTap: (){
+                    context.pop();
+                    context.pushNamed(AboutScreen.name);
+                  }
+                ),
                 Divider(color: MandarinaAppTheme.accentColor.withValues(alpha: 0.2), height: 60, indent: 20, endIndent: 20),
-                _buildMenuItem(Icons.settings_outlined, 'Ajustes', false),
+                _buildMenuItem(
+                  Icons.settings_outlined, 
+                  'Ajustes', 
+                  false,
+                  onTap: (){
+                    context.pop();
+                    context.pushNamed(SettingsScreen.name);
+                  }
+                ),
                 _buildMenuItem(Icons.exit_to_app, 'Cerrar sesión', false),
               ],
             )
@@ -70,7 +121,7 @@ class DrawerMenu extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon,String title, bool isSelected){
+  Widget _buildMenuItem(IconData icon,String title, bool isSelected, {VoidCallback? onTap}){
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: ListTile(
@@ -86,9 +137,7 @@ class DrawerMenu extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        onTap: () {
-          // Por ahora solo cerramos el drawer al tocar
-        },
+        onTap: onTap,
       ),
     );
   }

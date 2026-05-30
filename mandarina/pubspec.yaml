@@ -16,6 +16,8 @@ dependencies:
   lottie: ^3.3.2
   numberpicker: ^2.1.2
   sleek_circular_slider: ^2.1.0
+  flutter_lorem: ^2.0.0
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:

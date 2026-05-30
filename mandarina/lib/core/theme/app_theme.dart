@@ -3,13 +3,18 @@ import 'package:google_fonts/google_fonts.dart';
 
 class MandarinaAppTheme {
   static const primaryColor = Color.fromRGBO(232, 141, 103, 1);
+  static const primarySoftColor = Color.fromRGBO(249, 227, 219, 1);
   static const secondaryColor = Color.fromRGBO(255, 206, 153, 1);//Color.fromRGBO(241, 191, 152, 1);
   static const accentColor = Color.fromRGBO(243, 119, 72, 1);
+  static const primaryOrangeColor = Color(0xFFE07A5F);
   //static const loginTFColor = Color.fromRGBO(241, 191, 152, 0.3);
 
+  static const backgroundSettingsColor = Color.fromRGBO(240, 182, 158, 1);
   //static const profileAppBarColor = Color.fromRGBO(0, 105, 137, 1);
-  static const blueColor = Color.fromRGBO(0, 92, 120, 1);
+  static const blueColor = Color.fromRGBO(0, 105, 137, 1);
+  static const blueBisColor = Color.fromRGBO(0, 92, 120, 1);
   static const whiteColor = Color.fromRGBO(243, 247, 236, 1);
+  static const whiteBisColor = Color(0xfff9e3c3);
   static const darkBlueColor = Color.fromRGBO(44, 64, 82, 1);
 
   static const profilePrimaryColor = Color.fromRGBO(0, 92, 120, 1);
@@ -97,6 +102,22 @@ class MandarinaAppTheme {
           borderSide: const BorderSide(color: blueColor, width: 3),
         ),
       )
+  );
+}
+
+TextStyle mandarinaTextStyle({
+  double? fontSize,
+  FontWeight? fontWeight,
+  Color? color,
+  double? letterSpacing,
+  double? height,
+}) {
+  return GoogleFonts.quicksand(
+    fontSize: fontSize,
+    fontWeight: fontWeight,
+    color: color,
+    letterSpacing: letterSpacing,
+    height: height,
   );
 }
 
