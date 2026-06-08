@@ -21,10 +21,12 @@ class TagSelectorBottomSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<TagSelectorBottomSheet> createState() => _TagSelectorBottomSheetState();
+  ConsumerState<TagSelectorBottomSheet> createState() =>
+      _TagSelectorBottomSheetState();
 }
 
-class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet> {
+class _TagSelectorBottomSheetState
+    extends ConsumerState<TagSelectorBottomSheet> {
   // Tarea/Tag seleccionado actualmente
   late Task _selectedTask;
 
@@ -54,7 +56,8 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
     _selectedSessions = pomoState.sessionsCount;
 
     // Configuraciones deportivas por defecto o cargadas desde el estado anterior
-    _selectedSportRoutine = pomoState.sportRoutine ?? '40s Actividad / 20s Descanso';
+    _selectedSportRoutine =
+        pomoState.sportRoutine ?? '40s Actividad / 20s Descanso';
     _selectedSportSeries = pomoState.sessionsCount.clamp(3, 5);
 
     // Cache inicial de configuraciones del tag actual
@@ -81,7 +84,7 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
   /// Asigna un tiempo inicial sugerido si el usuario no lo ha personalizado previamente
   int _getDefaultTimeForTask(Task task) {
     if (task.title == 'Descanso') return 15; // Descanso corto por defecto
-    if (task.title == 'Trabajo') return 50;  // Foco extendido por defecto
+    if (task.title == 'Trabajo') return 50; // Foco extendido por defecto
     return 25; // Estudio / default
   }
 
@@ -110,7 +113,8 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
         _selectedSessions = _selectedSportSeries;
       } else {
         _selectedTime = _customTimes[task.id] ?? _getDefaultTimeForTask(task);
-        _selectedSessions = _customSessions[task.id] ?? _getDefaultSessionsForTask(task);
+        _selectedSessions =
+            _customSessions[task.id] ?? _getDefaultSessionsForTask(task);
       }
     });
   }
@@ -119,10 +123,22 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
   Widget build(BuildContext context) {
     // Filtrar los 4 tags requeridos por especificación (Trabajo, Estudio, Descanso, Deporte)
     final tasksToShow = [
-      taskList.firstWhere((t) => t.title == 'Estudio', orElse: () => taskList[1]),
-      taskList.firstWhere((t) => t.title == 'Trabajo', orElse: () => taskList[0]),
-      taskList.firstWhere((t) => t.title == 'Descanso', orElse: () => taskList[2]),
-      taskList.firstWhere((t) => t.title == 'Deporte', orElse: () => taskList[3]),
+      taskList.firstWhere(
+        (t) => t.title == 'Estudio',
+        orElse: () => taskList[1],
+      ),
+      taskList.firstWhere(
+        (t) => t.title == 'Trabajo',
+        orElse: () => taskList[0],
+      ),
+      taskList.firstWhere(
+        (t) => t.title == 'Descanso',
+        orElse: () => taskList[2],
+      ),
+      taskList.firstWhere(
+        (t) => t.title == 'Deporte',
+        orElse: () => taskList[3],
+      ),
     ];
 
     final isSportMode = _selectedTask.title == 'Deporte';
@@ -148,7 +164,9 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                 height: 4,
                 margin: const EdgeInsets.only(top: 14, bottom: 18),
                 decoration: BoxDecoration(
-                  color: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.15),
+                  color: MandarinaAppTheme.darkBlueColor.withValues(
+                    alpha: 0.15,
+                  ),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -164,19 +182,21 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                     style: mandarinaTextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: MandarinaAppTheme.darkBlueColor,
+                      color: MandarinaAppTheme.blueColor,
                     ),
                   ),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
                     icon: const Icon(Icons.close_rounded, size: 20),
-                    color: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.6),
+                    color: MandarinaAppTheme.blueColor.withValues(alpha: 0.6),
                     style: IconButton.styleFrom(
-                      backgroundColor: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.05),
+                      backgroundColor: MandarinaAppTheme.blueColor.withValues(
+                        alpha: 0.05,
+                      ),
                       padding: const EdgeInsets.all(8),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -202,13 +222,17 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? MandarinaAppTheme.primaryColor.withValues(alpha: 0.12)
+                                ? MandarinaAppTheme.primaryColor.withValues(
+                                    alpha: 0.12,
+                                  )
                                 : Colors.white.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: isSelected
                                   ? MandarinaAppTheme.primaryColor
-                                  : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.08),
+                                  : MandarinaAppTheme.blueColor.withValues(
+                                      alpha: 0.08,
+                                    ),
                               width: isSelected ? 2.0 : 1.0,
                             ),
                           ),
@@ -219,7 +243,9 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                                 icon,
                                 color: isSelected
                                     ? MandarinaAppTheme.primaryColor
-                                    : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.4),
+                                    : MandarinaAppTheme.blueColor.withValues(
+                                        alpha: 0.4,
+                                      ),
                                 size: 26,
                               ),
                               const SizedBox(height: 8),
@@ -227,10 +253,14 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                                 task.title,
                                 style: mandarinaTextStyle(
                                   fontSize: 13,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                   color: isSelected
                                       ? MandarinaAppTheme.primaryColor
-                                      : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.7),
+                                      : MandarinaAppTheme.blueColor.withValues(
+                                          alpha: 0.7,
+                                        ),
                                 ),
                               ),
                             ],
@@ -243,7 +273,10 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
               ),
             ),
             const SizedBox(height: 20),
-            Divider(height: 1, color: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.08)),
+            Divider(
+              height: 1,
+              color: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.08),
+            ),
 
             // Cuerpo dinámico: Contenido adaptable según tag (Con scroll para seguridad de desborde)
             Flexible(
@@ -252,26 +285,32 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                 padding: const EdgeInsets.all(24.0),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0.0, 0.08),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    );
-                  },
-                  child: isSportMode ? _buildDeporteLayout() : _buildStandardLayout(),
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: Tween<Offset>(
+                              begin: const Offset(0.0, 0.08),
+                              end: Offset.zero,
+                            ).animate(animation),
+                            child: child,
+                          ),
+                        );
+                      },
+                  child: isSportMode
+                      ? _buildDeporteLayout()
+                      : _buildStandardLayout(),
                 ),
               ),
             ),
 
             // Acción de Confirmación (Iniciar Enfoque)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 12.0,
+              ),
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
@@ -293,7 +332,8 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                       if (_selectedSportRoutine.contains('50s')) {
                         secondsPerRound = 65;
                       }
-                      final totalHiitSeconds = secondsPerRound * _selectedSportSeries;
+                      final totalHiitSeconds =
+                          secondsPerRound * _selectedSportSeries;
                       pomoNotifier.setTime(totalHiitSeconds);
                     } else {
                       pomoNotifier.setSessionsCount(_selectedSessions);
@@ -312,9 +352,9 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                     ),
                   ),
                   child: Text(
-                    'Iniciar Enfoque',
+                    'Confirmar',
                     style: mandarinaTextStyle(
-                      fontSize: 16,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -339,14 +379,18 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
         // Selector de Cronómetro (Tiempos)
         Row(
           children: [
-            const Icon(Icons.timer_outlined, color: MandarinaAppTheme.accentColor, size: 20),
+            const Icon(
+              Icons.timer_outlined,
+              color: MandarinaAppTheme.accentColor,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
               'Tiempo de Enfoque',
               style: mandarinaTextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: MandarinaAppTheme.darkBlueColor,
+                color: MandarinaAppTheme.blueColor,
               ),
             ),
             const Spacer(),
@@ -384,7 +428,10 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                     decoration: BoxDecoration(
                       gradient: isTimeSelected
                           ? const LinearGradient(
-                              colors: [MandarinaAppTheme.primaryColor, MandarinaAppTheme.accentColor],
+                              colors: [
+                                MandarinaAppTheme.primaryColor,
+                                MandarinaAppTheme.accentColor,
+                              ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             )
@@ -394,16 +441,19 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                       border: Border.all(
                         color: isTimeSelected
                             ? Colors.transparent
-                            : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.08),
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.08,
+                              ),
                         width: 1.2,
                       ),
                       boxShadow: isTimeSelected
                           ? [
                               BoxShadow(
-                                color: MandarinaAppTheme.primaryColor.withValues(alpha: 0.22),
+                                color: MandarinaAppTheme.primaryColor
+                                    .withValues(alpha: 0.22),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
-                              )
+                              ),
                             ]
                           : [],
                     ),
@@ -411,8 +461,14 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                       '$time min',
                       style: mandarinaTextStyle(
                         fontSize: 14,
-                        fontWeight: isTimeSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isTimeSelected ? Colors.white : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.7),
+                        fontWeight: isTimeSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isTimeSelected
+                            ? Colors.white
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.7,
+                              ),
                       ),
                     ),
                   ),
@@ -426,14 +482,18 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
         // Selector de Sesiones
         Row(
           children: [
-            const Icon(Icons.cached_rounded, color: MandarinaAppTheme.accentColor, size: 20),
+            const Icon(
+              Icons.cached_rounded,
+              color: MandarinaAppTheme.accentColor,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
               'Sesiones de Enfoque',
               style: mandarinaTextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: MandarinaAppTheme.darkBlueColor,
+                color: MandarinaAppTheme.blueColor,
               ),
             ),
             const Spacer(),
@@ -455,15 +515,21 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.06)),
+            border: Border.all(
+              color: MandarinaAppTheme.blueColor.withValues(alpha: 0.06),
+            ),
           ),
           child: Row(
             children: [
               IconButton(
-                onPressed: _selectedSessions > 1 ? () => setState(() => _selectedSessions--) : null,
+                onPressed: _selectedSessions > 1
+                    ? () => setState(() => _selectedSessions--)
+                    : null,
                 icon: const Icon(Icons.remove_rounded, size: 22),
                 color: MandarinaAppTheme.primaryColor,
-                disabledColor: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.15),
+                disabledColor: MandarinaAppTheme.blueColor.withValues(
+                  alpha: 0.15,
+                ),
                 style: IconButton.styleFrom(
                   backgroundColor: MandarinaAppTheme.whiteColor,
                   elevation: 0.5,
@@ -478,7 +544,8 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                     final bool isFilled = circleNumber <= _selectedSessions;
 
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedSessions = circleNumber),
+                      onTap: () =>
+                          setState(() => _selectedSessions = circleNumber),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -486,9 +553,15 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                         height: 22,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isFilled ? MandarinaAppTheme.accentColor : Colors.transparent,
+                          color: isFilled
+                              ? MandarinaAppTheme.accentColor
+                              : Colors.transparent,
                           border: Border.all(
-                            color: isFilled ? MandarinaAppTheme.accentColor : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.15),
+                            color: isFilled
+                                ? MandarinaAppTheme.accentColor
+                                : MandarinaAppTheme.blueColor.withValues(
+                                    alpha: 0.15,
+                                  ),
                             width: 2,
                           ),
                         ),
@@ -498,10 +571,14 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                 ),
               ),
               IconButton(
-                onPressed: _selectedSessions < 5 ? () => setState(() => _selectedSessions++) : null,
+                onPressed: _selectedSessions < 5
+                    ? () => setState(() => _selectedSessions++)
+                    : null,
                 icon: const Icon(Icons.add_rounded, size: 22),
                 color: MandarinaAppTheme.primaryColor,
-                disabledColor: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.15),
+                disabledColor: MandarinaAppTheme.blueColor.withValues(
+                  alpha: 0.15,
+                ),
                 style: IconButton.styleFrom(
                   backgroundColor: MandarinaAppTheme.whiteColor,
                   elevation: 0.5,
@@ -520,12 +597,14 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
     final routines = [
       {
         'title': '40s Actividad / 20s Descanso',
-        'desc': 'Foco de alta intensidad cardiovascular para activar tu energía.',
+        'desc':
+            'Foco de alta intensidad cardiovascular para activar tu energía.',
         'icon': Icons.flash_on_rounded,
       },
       {
         'title': '50s Actividad / 15s Descanso',
-        'desc': 'Intervalos de resistencia pura con pausas de recuperación corta.',
+        'desc':
+            'Intervalos de resistencia pura con pausas de recuperación corta.',
         'icon': Icons.fitness_center_rounded,
       },
       {
@@ -541,14 +620,18 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
       children: [
         Row(
           children: [
-            const Icon(Icons.local_fire_department_rounded, color: MandarinaAppTheme.accentColor, size: 20),
+            const Icon(
+              Icons.local_fire_department_rounded,
+              color: MandarinaAppTheme.accentColor,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
-              'Intervalo de Cardio / HIIT',
+              'Intervalo de Cardio/HIIT',
               style: mandarinaTextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: MandarinaAppTheme.darkBlueColor,
+                color: MandarinaAppTheme.blueColor,
               ),
             ),
           ],
@@ -561,7 +644,8 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
           return Padding(
             padding: const EdgeInsets.only(bottom: 12.0),
             child: GestureDetector(
-              onTap: () => setState(() => _selectedSportRoutine = r['title'] as String),
+              onTap: () =>
+                  setState(() => _selectedSportRoutine = r['title'] as String),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(16),
@@ -573,16 +657,20 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                   border: Border.all(
                     color: isSelected
                         ? MandarinaAppTheme.primaryColor
-                        : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.08),
+                        : MandarinaAppTheme.darkBlueColor.withValues(
+                            alpha: 0.08,
+                          ),
                     width: isSelected ? 1.8 : 1.0,
                   ),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: MandarinaAppTheme.primaryColor.withValues(alpha: 0.03),
+                            color: MandarinaAppTheme.primaryColor.withValues(
+                              alpha: 0.03,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
-                          )
+                          ),
                         ]
                       : [],
                 ),
@@ -592,15 +680,21 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? MandarinaAppTheme.primaryColor.withValues(alpha: 0.12)
-                            : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.05),
+                            ? MandarinaAppTheme.primaryColor.withValues(
+                                alpha: 0.12,
+                              )
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.05,
+                              ),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         r['icon'] as IconData,
                         color: isSelected
                             ? MandarinaAppTheme.primaryColor
-                            : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.6),
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.6,
+                              ),
                         size: 20,
                       ),
                     ),
@@ -614,7 +708,9 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                             style: mandarinaTextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? MandarinaAppTheme.primaryColor : MandarinaAppTheme.darkBlueColor,
+                              color: isSelected
+                                  ? MandarinaAppTheme.primaryColor
+                                  : MandarinaAppTheme.blueColor,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -622,7 +718,9 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                             r['desc'] as String,
                             style: mandarinaTextStyle(
                               fontSize: 12,
-                              color: MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.5),
+                              color: MandarinaAppTheme.darkBlueColor.withValues(
+                                alpha: 0.5,
+                              ),
                               height: 1.3,
                             ),
                           ),
@@ -636,14 +734,24 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                       height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected ? MandarinaAppTheme.primaryColor : Colors.transparent,
+                        color: isSelected
+                            ? MandarinaAppTheme.primaryColor
+                            : Colors.transparent,
                         border: Border.all(
-                          color: isSelected ? MandarinaAppTheme.primaryColor : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.15),
+                          color: isSelected
+                              ? MandarinaAppTheme.primaryColor
+                              : MandarinaAppTheme.blueColor.withValues(
+                                  alpha: 0.15,
+                                ),
                           width: 2,
                         ),
                       ),
                       child: isSelected
-                          ? const Icon(Icons.check, color: Colors.white, size: 14)
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 14,
+                            )
                           : null,
                     ),
                   ],
@@ -657,14 +765,18 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
         // Selector de Series de Deporte
         Row(
           children: [
-            const Icon(Icons.loop_rounded, color: MandarinaAppTheme.accentColor, size: 20),
+            const Icon(
+              Icons.loop_rounded,
+              color: MandarinaAppTheme.accentColor,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(
-              'Rounds / Series de Deporte',
+              'Rounds/Series',
               style: mandarinaTextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
-                color: MandarinaAppTheme.darkBlueColor,
+                color: MandarinaAppTheme.blueColor,
               ),
             ),
             const Spacer(),
@@ -695,11 +807,17 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? MandarinaAppTheme.accentColor.withValues(alpha: 0.12)
+                          ? MandarinaAppTheme.accentColor.withValues(
+                              alpha: 0.12,
+                            )
                           : Colors.white,
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isSelected ? MandarinaAppTheme.accentColor : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.08),
+                        color: isSelected
+                            ? MandarinaAppTheme.accentColor
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.08,
+                              ),
                         width: isSelected ? 1.8 : 1.0,
                       ),
                     ),
@@ -707,8 +825,14 @@ class _TagSelectorBottomSheetState extends ConsumerState<TagSelectorBottomSheet>
                       '$series Series',
                       style: mandarinaTextStyle(
                         fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? MandarinaAppTheme.accentColor : MandarinaAppTheme.darkBlueColor.withValues(alpha: 0.7),
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? MandarinaAppTheme.accentColor
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.7,
+                              ),
                       ),
                     ),
                   ),
