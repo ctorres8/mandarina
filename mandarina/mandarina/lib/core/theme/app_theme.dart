@@ -111,6 +111,7 @@ TextStyle mandarinaTextStyle({
   Color? color,
   double? letterSpacing,
   double? height,
+  List<Shadow>? shadows,
 }) {
   return GoogleFonts.quicksand(
     fontSize: fontSize,
@@ -118,6 +119,7 @@ TextStyle mandarinaTextStyle({
     color: color,
     letterSpacing: letterSpacing,
     height: height,
+    shadows: shadows,
   );
 }
 

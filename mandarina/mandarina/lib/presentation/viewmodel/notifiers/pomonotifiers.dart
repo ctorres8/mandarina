@@ -171,4 +171,12 @@ class PomoNotifier extends Notifier<PomoState>{
   {
     state=state.copyWith(isRunning: stateTimer);
   }
+
+  void setSessionsCount(int count) {
+    state = state.copyWith(sessionsCount: count);
+  }
+
+  void setSportRoutine(String? routine) {
+    state = state.copyWith(sportRoutine: routine);
+  }
 }
