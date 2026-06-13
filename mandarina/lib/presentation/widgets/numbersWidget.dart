@@ -1,32 +1,41 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 
-class NumbersWidget extends StatelessWidget{
+class NumbersWidget extends StatelessWidget {
+  final int completedTasks;
+  final int focusMinutes;
+  final int affinityLevel;
+
+  const NumbersWidget({
+    super.key,
+    required this.completedTasks,
+    required this.focusMinutes,
+    required this.affinityLevel,
+  });
+
   @override
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.center,
     children: <Widget>[
-      buildNumberButton(text: 'Tareas', value: 234),
+      buildNumberButton(text: 'Tareas', value: completedTasks),
       buildDivider(),
-      buildNumberButton(text: 'Minutos', value: 15392),
+      buildNumberButton(text: 'Minutos', value: focusMinutes),
       buildDivider(),
-      buildNumberButton(text: 'Afinidad', value: 8),
-
+      buildNumberButton(text: 'Afinidad', value: affinityLevel),
     ],
   );
 
-  Widget buildDivider() => Container(
+  Widget buildDivider() => const SizedBox(
     height: 24,
-    child: VerticalDivider(color: MandarinaAppTheme.primaryColor.withValues(alpha: 0.2),),
+    child: VerticalDivider(color: Color.fromRGBO(232, 141, 103, 0.2)),
   );
 
   Widget buildNumberButton({
     required String text,
     required int value,
   }) => MaterialButton(
-    padding: EdgeInsets.symmetric(vertical: 4),
+    padding: const EdgeInsets.symmetric(vertical: 4),
     onPressed: (){},
     materialTapTargetSize:  MaterialTapTargetSize.shrinkWrap,
     child: Column(
@@ -50,7 +59,6 @@ class NumbersWidget extends StatelessWidget{
             fontWeight: FontWeight.w500
           ),
         ),
-
       ],
     ),
   );

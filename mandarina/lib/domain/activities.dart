@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 enum Activity {
@@ -18,9 +17,9 @@ class Task {
 }
 
 List<Task> taskList =[
-  Task(1,"Trabajo",CupertinoIcons.briefcase_fill),
-  Task(2,"Estudio",CupertinoIcons.book_fill),
-  Task(3,"Descanso",CupertinoIcons.zzz),
-  Task(4,"Deporte",CupertinoIcons.heart_fill),
-  Task(5,"Ocio",CupertinoIcons.tree),
+  Task(1,"Trabajo",Icons.business_center_rounded),
+  Task(2,"Estudio",Icons.school_rounded),
+  Task(3,"Descanso",Icons.coffee_rounded),
+  Task(4,"Deporte",Icons.directions_run_rounded),
+  Task(5,"Ocio",Icons.bookmark_rounded),
 ];

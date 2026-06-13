@@ -1,22 +1,18 @@
-import 'dart:async';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
-import 'package:mandarina/domain/activities.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/pomonotifiers.dart';
 import 'package:mandarina/presentation/viewmodel/providers.dart';
 import 'package:mandarina/presentation/viewmodel/state/pomo_state.dart';
-import 'package:mandarina/presentation/widgets/bottomSheet.dart';
+import 'package:mandarina/presentation/viewmodel/state/sport_state.dart';
+import 'package:mandarina/presentation/viewmodel/notifiers/sport_notifier.dart';
+import 'package:mandarina/presentation/widgets/tag_selector.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
-class HomeScreen extends ConsumerStatefulWidget{
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
   static const name = 'home_screen';
 
@@ -29,6 +25,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final PomoState pomoState = ref.watch(pomoProvider);
     final PomoNotifier pomoNotifier = ref.read(pomoProvider.notifier);
+    final bool isSport = pomoState.currentTask.title == 'Deporte';
+    final sportState = ref.watch(sportProvider);
+    final sportNotifier = ref.read(sportProvider.notifier);
 
     return Container(
       decoration: BoxDecoration(
@@ -38,193 +37,245 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           colors: [
             MandarinaAppTheme.primaryOrangeColor,
             MandarinaAppTheme.primaryColor,
-            //MandarinaAppTheme.primaryOrangeColor,
 
+            //MandarinaAppTheme.primaryOrangeColor,
           ],
           stops: const [0.1, 0.7],
         ),
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent,//MandarinaAppTheme.primaryColor,
+        backgroundColor: Colors.transparent, //MandarinaAppTheme.primaryColor,
         appBar: AppBar(
           iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
-          title: Image.asset('assets/images/logo_blanco.png',scale:18,),
+          title: Image.asset('assets/images/logo_blanco.png', scale: 18),
           elevation: 0,
           backgroundColor: Colors.transparent,
         ),
         drawer: DrawerMenu(),
         body: SafeArea(
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                const SizedBox(height: 70,),
-                _taskIcon(),
-                const SizedBox(height: 30,),
-                _cronometer(pomoState,pomoNotifier),
-                const SizedBox(height: 30,),
-                Text(
-                  ref.watch(pomoProvider.notifier).formatTime(), //Tiempo en String
-                  style: GoogleFonts.quicksand(
-                    color: MandarinaAppTheme.whiteBisColor,
-                    fontSize: 100,
-                    fontWeight: FontWeight.w600,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        offset: Offset(0, 1),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  )
-                ),
-                const SizedBox(height: 30,),
-
-                GestureDetector(
-                  onTap: () =>  pomoNotifier.runTimer(),
-                  onTapDown: (_) => pomoNotifier.startCancelCountdown(),
-                  onTapUp: (_) => pomoNotifier.stopCancelCoundown(),
-                  onTapCancel: ()=> pomoNotifier.stopCancelCoundown(),
-                  child: Container(
-                    width: 100,//280,
-                    height: 100,//60,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: MandarinaAppTheme.whiteBisColor,
-                      //borderRadius: BorderRadius.circular(30),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          child: Container(
-                            width: 280 * pomoState.holdingProgress,
-                            decoration: BoxDecoration(
-                              color: MandarinaAppTheme.accentColor.withValues(alpha:0.7),
-                            ),
-                          ),
-                        ),
-                        Center(
-                          child: FaIcon(
-                            pomoState.isRunning? FontAwesomeIcons.xmark : FontAwesomeIcons.play,
-                            color: MandarinaAppTheme.primaryOrangeColor,
-                            size: 48,
-                          ),
-                        ),
-                      ]
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 300),
-                  opacity: pomoState.isRunning ? 1.0 : 0.0,
-                  child: Text(
-                    "Mantén presionado 1s para abortar el pomodoro.",
-                    style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: MandarinaAppTheme.whiteColor.withValues(alpha: 0.8),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-                /*
-                ElevatedButton(
-                  onPressed: () => pomoNotifier.toggleTimer(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: pomoState.isRunning? MandarinaAppTheme.accentColor : MandarinaAppTheme.secondaryColor,
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size(260, 60)
-                  ),
-                  child: Text(
-                    pomoState.isRunning? "STOP!":"START!",
-                    style: GoogleFonts.quicksand(
-                      fontSize: 35, 
-                      fontWeight: FontWeight.w700,
-                      color: pomoState.isRunning? MandarinaAppTheme.whiteColor : MandarinaAppTheme.accentColor,
-                    ),
-                  ),
-                ),
-                */
-              ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 16.0,
             ),
-          )
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  const Spacer(flex: 2), // Espaciador flexible
+                  //Cronometro General
+                  _cronometer(
+                    isSport: isSport,
+                    pomoState: pomoState,
+                    pomoNotifier: pomoNotifier,
+                    sportState: sportState,
+                    sportNotifier: sportNotifier,
+                  ),
+
+                  const Spacer(flex: 1), // Espaciador flexible
+                  const SizedBox(height: 20),
+
+                  _statsRow(),
+
+                  const Spacer(flex: 1), // Espaciador flexible
+                  // Tiempo (texto) envuelto en un FittedBox para que no rompa el ancho total
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      isSport
+                          ? '${sportState.remainingSeconds}s'
+                          : ref
+                                .watch(pomoProvider.notifier)
+                                .formatTime(), //Tiempo en String
+                      style: mandarinaTextStyle(
+                        color: MandarinaAppTheme.whiteBisColor,
+                        fontSize: 100,
+                        fontWeight: FontWeight.w600,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black26,
+                            offset: Offset(0, 1),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  //const SizedBox(height: 30,),
+                  const Spacer(flex: 2), // Espaciador flexible
+                  // Play/Stop Button
+                  _playButton(
+                    isSport: isSport,
+                    pomoNotifier: pomoNotifier,
+                    pomoState: pomoState,
+                    sportNotifier: sportNotifier,
+                    sportState: sportState,
+                  ),
+
+                  const SizedBox(
+                    height: 12,
+                  ), // Espacio rigido controlado para el texto explicativo
+                  //const Spacer(flex: 2,),
+
+                  //Leyenda instructiva para parar el cronometro
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: isSport
+                        ? (sportState.isTimerRunning ? 1.0 : 0.0)
+                        : (pomoState.isRunning ? 1.0 : 0.0),
+                    child: Text(
+                      "Mantén presionado 1s para abortar.",
+                      style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: MandarinaAppTheme.whiteColor.withValues(
+                          alpha: 0.8,
+                        ),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+
+                  const Spacer(flex: 1),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
-Widget _taskIcon() {
+  GestureDetector _playButton({
+    required bool isSport,
+    required PomoNotifier pomoNotifier,
+    required PomoState pomoState,
+    required SportNotifier sportNotifier,
+    required SportState sportState,
+  }) {
+    final bool isRunning = isSport
+        ? sportState.isTimerRunning
+        : pomoState.isRunning;
+    final double progress = isSport
+        ? sportState.holdingProgress
+        : pomoState.holdingProgress;
 
-  return Container(
-    height: 60,
-    width: 60,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(
-        width: 2,
-        color: MandarinaAppTheme.secondaryColor,
+    return GestureDetector(
+      onTap: () => isSport ? sportNotifier.runTimer() : pomoNotifier.runTimer(),
+      onTapDown: (_) => isSport
+          ? sportNotifier.startCancelCountdown()
+          : pomoNotifier.startCancelCountdown(),
+      onTapUp: (_) => isSport
+          ? sportNotifier.stopCancelCountdown()
+          : pomoNotifier.stopCancelCoundown(),
+      onTapCancel: () => isSport
+          ? sportNotifier.stopCancelCountdown()
+          : pomoNotifier.stopCancelCoundown(),
+      child: Container(
+        width: 100, //280,
+        height: 100, //60,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: MandarinaAppTheme.whiteBisColor,
+          //borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 100 * progress,
+                decoration: BoxDecoration(
+                  color: MandarinaAppTheme.accentColor.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+            Center(
+              child: Icon(
+                isRunning ? Icons.close : Icons.play_arrow_rounded,
+                color: MandarinaAppTheme.primaryOrangeColor,
+                size: 80,
+              ),
+            ),
+          ],
+        ),
       ),
-      color: MandarinaAppTheme.secondaryColor,
-    ),
-    child: IconButton(
-      onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          backgroundColor: Colors.transparent,
-          builder: (context) => PomoSettingsSheet(),
-        );
-      },
-      icon: Icon(ref.read(pomoProvider).actualActivityIcon, color: MandarinaAppTheme.accentColor),
-    ),
-  );
-}
+    );
+  }
 
+  Widget _cronometer({
+    required bool isSport,
+    required PomoState pomoState,
+    required PomoNotifier pomoNotifier,
+    required SportState sportState,
+    required SportNotifier sportNotifier,
+  }) {
+    final String currentTaskTitle = pomoState.currentTask.title;
+    final bool isStudyOrWork =
+        currentTaskTitle == 'Estudio' || currentTaskTitle == 'Trabajo';
+    final bool isRest = currentTaskTitle == 'Descanso';
 
-  Widget _cronometer(PomoState pomoState, PomoNotifier pomoNotifier){
-    //int currentValuePomo = 25;
-    //final PomoState pomoState = ref.watch(pomoProvider);
-    //final PomoNotifier pomoNotifier = ref.read(pomoProvider.notifier);
-    return SizedBox( //Timer
-      width: 280, height: 280,
+    final double sliderMin = isSport
+        ? 0.0
+        : (isStudyOrWork ? 1200 : (isRest ? 300 : 300));
+
+    final double sliderMax = isSport
+        ? (sportState.isWorkInterval
+                  ? sportState.workSeconds
+                  : sportState.breakSeconds)
+              .toDouble()
+        : (isStudyOrWork ? 3600 : (isRest ? 1800 : 7200));
+
+    final double initialValue = isSport
+        ? sportState.remainingSeconds.clamp(0, sliderMax.toInt()).toDouble()
+        : pomoState.focusedTime.clamp(sliderMin, sliderMax);
+
+    final String lottieAsset = isSport
+        ? (sportState.isWorkInterval
+              ? 'assets/lotties/gym_boy1.json'
+              : 'assets/lotties/leisure_boy1.json')
+        : 'assets/lotties/studying5.json';
+
+    return SizedBox(
+      //Timer
+      width: 280,
+      height: 280,
       child: Stack(
         alignment: AlignmentDirectional.center,
         children: [
           Container(
-            width: 230, height: 230,
+            width: 230,
+            height: 230,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: MandarinaAppTheme.whiteBisColor,//Color.fromRGBO(251, 226, 187,0.95)
+              color: MandarinaAppTheme.whiteBisColor,
             ),
           ),
           Container(
-            width: 200, height: 200,      
+            width: 200,
+            height: 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.black.withOpacity(0.02)),
+              border: Border.all(color: Colors.black.withValues(alpha: 0.02)),
             ),
           ),
           SleekCircularSlider(
-            //initialValue: value,
-            initialValue: pomoState.focusedTime,
-            min: 0,
-            max: 7201,
+            initialValue: initialValue,
+            min: sliderMin,
+            max: sliderMax <= sliderMin ? sliderMin + 1 : sliderMax + 1,
             appearance: CircularSliderAppearance(
               spinnerMode: false,
               customWidths: CustomSliderWidths(
@@ -234,8 +285,10 @@ Widget _taskIcon() {
                 shadowWidth: 0,
               ),
               customColors: CustomSliderColors(
-                trackColor: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.2),//MandarinaAppTheme.accentColor,
-                progressBarColor: MandarinaAppTheme.secondaryColor,//MandarinaAppTheme.accentColor,
+                trackColor: MandarinaAppTheme.whiteBisColor.withValues(
+                  alpha: 0.2,
+                ),
+                progressBarColor: MandarinaAppTheme.secondaryColor,
                 dotColor: MandarinaAppTheme.whiteBisColor,
                 hideShadow: true,
               ),
@@ -243,44 +296,207 @@ Widget _taskIcon() {
               angleRange: 360,
               startAngle: 270,
             ),
-            onChange: (newValue) {
-              double x=0;
-              //if(!isRunning){ 
-              if(!pomoState.timerIsRunning){ 
-                //x = (newValue ~/300).toDouble()*300;
-                x = (newValue ~/60).toDouble()*60;
-              }
-              else{
-                x=newValue;
-              }
-
-              pomoNotifier.setTime(x);
-                          
-              //_timer.cancel();
-            },
-            innerWidget: (double newValue){
+            onChange: isSport
+                ? null
+                : (newValue) {
+                    double x = 0;
+                    if (!pomoState.timerIsRunning) {
+                      if (isStudyOrWork || isRest) {
+                        x = (newValue / 300).roundToDouble() * 300;
+                      } else {
+                        x = (newValue / 60).roundToDouble() * 60;
+                      }
+                      x = x.clamp(sliderMin, sliderMax);
+                    } else {
+                      x = newValue;
+                    }
+                    pomoNotifier.setTime(x);
+                  },
+            innerWidget: (double newValue) {
               return Center(
                 child: SizedBox(
                   width: 160,
                   height: 160,
-                  child: Lottie.asset('assets/lotties/studying5.json'),
-                )
+                  child: Lottie.asset(lottieAsset),
+                ),
               );
             },
           ),
-          //if(isRunning)GestureDetector(
-          if(pomoState.isRunning)
+          if (isSport || pomoState.isRunning)
             GestureDetector(
               onTap: () {},
               child: Container(
-                width: 280, height: 280,
+                width: 280,
+                height: 280,
                 color: Colors.transparent,
               ),
-            )
+            ),
         ],
       ),
     );
   }
+
+  Widget _statsRow() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final isSport = ref.watch(
+          pomoProvider.select((s) => s.currentTask.title == 'Deporte'),
+        );
+        final sportRoutine = ref.watch(
+          pomoProvider.select((s) => s.sportRoutine),
+        );
+        final bool showSportRoutine = isSport && sportRoutine != null;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Circunferencia 1: Modo / Tag (Reactivo únicamente a cambios en la tarea actual)
+              _circleStat(
+                onTap: () {
+                  TagSelectorBottomSheet.show(context);
+                },
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final currentTask = ref.watch(
+                      pomoProvider.select((s) => s.currentTask),
+                    );
+                    final isSportMode = currentTask.title == 'Deporte';
+                    if (isSportMode) {
+                      final isWorkInterval = ref.watch(
+                        sportProvider.select((s) => s.isWorkInterval),
+                      );
+                      return _statItem(
+                        icon: isWorkInterval
+                            ? Icons.directions_run_rounded
+                            : Icons.airline_seat_recline_extra_rounded,
+                        value: isWorkInterval ? 'Trabajo' : 'Descanso',
+                      );
+                    }
+                    return _statItem(
+                      icon: currentTask.icon,
+                      value: currentTask.title,
+                    );
+                  },
+                ),
+              ),
+              // Circunferencia 2: Sesiones / Series (Reactivo únicamente al conteo de sesiones completadas y totales)
+              _circleStat(
+                onTap: () {
+                  TagSelectorBottomSheet.show(context);
+                },
+                child: Consumer(
+                  builder: (context, ref, _) {
+                    final isSportTask = ref.watch(
+                      pomoProvider.select(
+                        (s) => s.currentTask.title == 'Deporte',
+                      ),
+                    );
+                    if (isSportTask) {
+                      final sportSeriesCompletadas = ref.watch(
+                        sportProvider.select((s) => s.seriesCompletadas),
+                      );
+                      final sportSeriesTotales = ref.watch(
+                        sportProvider.select((s) => s.seriesTotales),
+                      );
+                      return _statItem(
+                        icon: Icons.loop_rounded,
+                        value: '$sportSeriesCompletadas/$sportSeriesTotales',
+                      );
+                    } else {
+                      final sesionesCompletadas = ref.watch(
+                        pomoProvider.select((s) => s.sesionesCompletadas),
+                      );
+                      final sesionesTotales = ref.watch(
+                        pomoProvider.select((s) => s.sesionesTotales),
+                      );
+                      return _statItem(
+                        icon: Icons.cached_rounded,
+                        value: '$sesionesCompletadas/$sesionesTotales',
+                      );
+                    }
+                  },
+                ),
+              ),
+              // Circunferencia 3: HIIT Routine (Solo si es deporte y hay rutina configurada)
+              if (showSportRoutine)
+                _circleStat(
+                  onTap: () {
+                    TagSelectorBottomSheet.show(context);
+                  },
+                  child: _statItem(
+                    icon: Icons.flash_on_rounded,
+                    value: sportRoutine.split(' ').first,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _circleStat({required Widget child, VoidCallback? onTap}) {
+    return Container(
+      width: 90,
+      height: 90,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.12),
+        border: Border.all(
+          color: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.2),
+          width: 1.0,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(45),
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Center(
+            child: Padding(padding: const EdgeInsets.all(6.0), child: child),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _statItem({required IconData icon, required String value}) {
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          icon,
+          size: 30,
+          color: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.75),
+        ),
+        /*
+        const SizedBox(height: 3),
+        Text(
+          label,
+          style: mandarinaTextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.75),
+          ),
+        ),
+        */
+        const SizedBox(height: 1),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            style: mandarinaTextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: MandarinaAppTheme.whiteBisColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
-
-

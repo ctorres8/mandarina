@@ -64,6 +64,7 @@ class PomoNotifier extends Notifier<PomoState>{
       (Timer timer){
         if(state.countTimer<=0){
           _stopTimer();
+          incrementSesionesCompletadas(); // Incrementa sesiones completadas al finalizar con éxito
           resetTimer();
           //TODO: Hacer una notificación o sonido de "Terminado"
           //setTimerOnOff(false);
@@ -148,21 +149,38 @@ class PomoNotifier extends Notifier<PomoState>{
     return '$minutes:$seconds';
   }
 
+  void incrementSesionesCompletadas() {
+    state = state.copyWith(sesionesCompletadas: state.sesionesCompletadas + 1);
+  }
+
   void setTime(double seconds) {
     if (state.isRunning) return; // No permitir cambios si está corriendo
 
-    // 1. Definimos el salto (5 minutos = 300 segundos)
-    const int step = 300;
+    final isStudyOrWork = state.currentTask.title == 'Estudio' || state.currentTask.title == 'Trabajo';
+    final isRest = state.currentTask.title == 'Descanso';
 
-    // 2. Redondeamos al múltiplo de 300 más cercano
-    // Ejemplo: si el slider manda 740 segundos, (740 / 300) = 2.46 -> round a 2 -> 2 * 300 = 600 seg (10 min)
-    double roundedSeconds = (seconds / step).roundToDouble() * step;
-
-    // 3. Validaciones de límites (opcional pero recomendado)
-    if (roundedSeconds < 300) roundedSeconds = 300; // Mínimo 5 minutos
-    if (roundedSeconds > 7200) roundedSeconds = 7200; // Máximo 120 minutos (2hs)
-
-    state = state.copyWith(focusedTime: roundedSeconds);
+    if (isStudyOrWork) {
+      // Rango permitido estrictamente 20-60 minutos con saltos fijos de 5 minutos (300 segundos)
+      const int step = 300;
+      double roundedSeconds = (seconds / step).roundToDouble() * step;
+      if (roundedSeconds < 1200) roundedSeconds = 1200; // Mínimo 20 minutos
+      if (roundedSeconds > 3600) roundedSeconds = 3600; // Máximo 60 minutos
+      state = state.copyWith(focusedTime: roundedSeconds);
+    } else if (isRest) {
+      // Rango permitido para descanso 5-30 minutos con saltos fijos de 5 minutos
+      const int step = 300;
+      double roundedSeconds = (seconds / step).roundToDouble() * step;
+      if (roundedSeconds < 300) roundedSeconds = 300; // Mínimo 5 minutos
+      if (roundedSeconds > 1800) roundedSeconds = 1800; // Máximo 30 minutos
+      state = state.copyWith(focusedTime: roundedSeconds);
+    } else {
+      // Deporte u otros
+      const int step = 300;
+      double roundedSeconds = (seconds / step).roundToDouble() * step;
+      if (roundedSeconds < 300) roundedSeconds = 300;
+      if (roundedSeconds > 7200) roundedSeconds = 7200;
+      state = state.copyWith(focusedTime: roundedSeconds);
+    }
   }
 
 
@@ -170,5 +188,17 @@ class PomoNotifier extends Notifier<PomoState>{
   void setTimerOnOff (bool stateTimer)
   {
     state=state.copyWith(isRunning: stateTimer);
+  }
+
+  void setSessionsCount(int count) {
+    state = state.copyWith(
+      sessionsCount: count,
+      sesionesTotales: count,
+      sesionesCompletadas: 0,
+    );
+  }
+
+  void setSportRoutine(String? routine) {
+    state = state.copyWith(sportRoutine: routine);
   }
 }
