@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/viewmodel/providers.dart';
 import 'package:mandarina/presentation/viewmodel/state/workflow_state.dart';
+import 'package:mandarina/providers/phrases_provider.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 /// Pantalla Modo Freelancer para la aplicación Mandarina.
@@ -72,7 +73,8 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
   // Iniciar la detección de la pulsación larga con barra de progreso
   void _onButtonTapDown(TapDownDetails details) {
     final workflowState = ref.read(workflowProvider);
-    if (!workflowState.isRunning) return; // Solo se detiene si está en ejecución
+    if (!workflowState.isRunning)
+      return; // Solo se detiene si está en ejecución
 
     ref.read(workflowProvider.notifier).startHold(() {
       _handleSessionStop();
@@ -117,156 +119,161 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
           builder: (context, ref, child) {
             final workflowState = ref.watch(workflowProvider);
             final totalDuration = Duration(
-              seconds: workflowState.tasks.fold<int>(0, (sum, t) => sum + t.durationInSeconds),
+              seconds: workflowState.tasks.fold<int>(
+                0,
+                (sum, t) => sum + t.durationInSeconds,
+              ),
             );
 
-            return AlertDialog(
-              backgroundColor: MandarinaAppTheme.whiteColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              title: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: MandarinaAppTheme.primaryOrangeColor.withValues(
-                        alpha: 0.1,
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const FaIcon(
-                      FontAwesomeIcons.circleCheck,
-                      color: MandarinaAppTheme.primaryOrangeColor,
-                      size: 48,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Sesión Finalizada',
-                    style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                      color: MandarinaAppTheme.blueColor,
-                    ),
-                  ),
-                ],
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+            return MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(viewInsets: EdgeInsets.zero),
+              child: AlertDialog(
+                backgroundColor: MandarinaAppTheme.whiteColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                title: Column(
                   children: [
-                    Text(
-                      'Tareas completadas durante esta sesión de trabajo:',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: MandarinaAppTheme.blueColor,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    if (workflowState.tasks.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          color: MandarinaAppTheme.primaryColor.withValues(
-                            alpha: 0.1,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Text(
-                          'No registraste subtareas individuales.',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.quicksand(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: MandarinaAppTheme.blueColor,
-                          ),
-                        ),
-                      )
-                    else
-                      Flexible(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxHeight: 200),
-                          child: ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: workflowState.tasks.length,
-                            itemBuilder: (context, index) {
-                              final task = workflowState.tasks[index];
-                              return _EditableTaskRow(
-                                task: task,
-                                ref: ref,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
+                        color: MandarinaAppTheme.primaryOrangeColor.withValues(
+                          alpha: 0.1,
+                        ),
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Tiempo Total',
-                            style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: MandarinaAppTheme.primaryOrangeColor,
-                            ),
-                          ),
-                          Text(
-                            _formatDuration(totalDuration),
-                            style: GoogleFonts.quicksand(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              color: MandarinaAppTheme.primaryOrangeColor,
-                            ),
-                          ),
-                        ],
+                      child: const FaIcon(
+                        FontAwesomeIcons.circleCheck,
+                        color: MandarinaAppTheme.primaryOrangeColor,
+                        size: 48,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Sesión Finalizada',
+                      style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        color: MandarinaAppTheme.blueColor,
                       ),
                     ),
                   ],
                 ),
-              ),
-              actionsAlignment: MainAxisAlignment.center,
-              actionsPadding: const EdgeInsets.only(
-                bottom: 24,
-                left: 24,
-                right: 24,
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    ref.read(workflowProvider.notifier).reset();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MandarinaAppTheme.primaryOrangeColor,
-                    foregroundColor: MandarinaAppTheme.whiteColor,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Cerrar y Guardar',
-                    style: GoogleFonts.quicksand(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 18,
-                    ),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Tareas completadas durante esta sesión de trabajo:',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.quicksand(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: MandarinaAppTheme.blueColor,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      if (workflowState.tasks.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          decoration: BoxDecoration(
+                            color: MandarinaAppTheme.primaryColor.withValues(
+                              alpha: 0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey[200]!),
+                          ),
+                          child: Text(
+                            'No registraste subtareas individuales.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.quicksand(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: MandarinaAppTheme.blueColor,
+                            ),
+                          ),
+                        )
+                      else
+                        Flexible(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 200),
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: workflowState.tasks.length,
+                              itemBuilder: (context, index) {
+                                final task = workflowState.tasks[index];
+                                return _EditableTaskRow(task: task, ref: ref);
+                              },
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Tiempo Total',
+                              style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                color: MandarinaAppTheme.primaryOrangeColor,
+                              ),
+                            ),
+                            Text(
+                              _formatDuration(totalDuration),
+                              style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 18,
+                                color: MandarinaAppTheme.primaryOrangeColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+                actionsAlignment: MainAxisAlignment.center,
+                actionsPadding: const EdgeInsets.only(
+                  bottom: 24,
+                  left: 24,
+                  right: 24,
+                ),
+                actions: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      ref.read(workflowProvider.notifier).reset();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MandarinaAppTheme.primaryOrangeColor,
+                      foregroundColor: MandarinaAppTheme.whiteColor,
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Cerrar y Guardar',
+                      style: GoogleFonts.quicksand(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -281,7 +288,8 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
 
     // 30 minutos = 30 * 60 = 1800 segundos.
     // Una vuelta completa del SleekCircularSlider representa 30 minutos.
-    final double sliderValue = (elapsed.inMilliseconds % (30 * 60 * 1000)) / 1000.0;
+    final double sliderValue =
+        (elapsed.inMilliseconds % (30 * 60 * 1000)) / 1000.0;
 
     return Container(
       decoration: const BoxDecoration(
@@ -295,6 +303,7 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -325,26 +334,53 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Spacer(flex: 2),
+                // Frase Motivacional flotante/sutil (puramente transparente)
+                Consumer(
+                  builder: (context, ref, child) {
+                    final phrase = ref.watch(randomPhraseProvider);
+                    if (phrase.isEmpty) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                        left: 24.0,
+                        right: 24.0,
+                        top: 4.0,
+                        bottom: 4.0,
+                      ),
+                      child: Text(
+                        phrase,
+                        textAlign: TextAlign.center,
+                        style: mandarinaTextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: MandarinaAppTheme.whiteColor.withValues(
+                            alpha: 0.75,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const Spacer(flex: 1),
+                const SizedBox(height: 8),
                 // Cronómetro Circular
                 _cronometer(sliderValue),
 
                 const Spacer(flex: 1),
-                const SizedBox(height: 20),
+                const SizedBox(height: 15),
 
                 // Feed Visual de Checkpoints de Subtareas
                 if (workflowState.tasks.isNotEmpty)
                   _checkpointsRow()
                 else
                   SizedBox(
-                    height: 90,
+                    height: 70,
                     child: Center(
                       child: Text(
-                        "Los checkpoints registrados aparecerán aquí",
+                        "Las tareas registradas aparecerán aquí",
                         style: GoogleFonts.quicksand(
                           fontWeight: FontWeight.w600,
                           color: MandarinaAppTheme.whiteColor.withValues(
-                            alpha: 0.7,
+                            alpha: 0.4,
                           ),
                           fontSize: 13,
                         ),
@@ -373,11 +409,11 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                   ),
                 ),
 
-                const Spacer(flex: 2),
+                const Spacer(flex: 1),
                 // Botón Principal Checkpoint / Start con progreso animado de parada
                 _playButton(workflowState),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 // Leyenda instructiva de acción
                 AnimatedOpacity(
                   duration: const Duration(milliseconds: 300),
@@ -446,8 +482,8 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                 workflowState.holdingProgress > 0.0
                     ? FontAwesomeIcons.stopwatch
                     : (workflowState.isRunning
-                        ? FontAwesomeIcons.solidFlag
-                        : FontAwesomeIcons.play),
+                          ? FontAwesomeIcons.solidFlag
+                          : FontAwesomeIcons.play),
                 color: MandarinaAppTheme.primaryColor,
                 size: 48,
               ),
@@ -461,7 +497,7 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
   Widget _checkpointsRow() {
     final workflowState = ref.watch(workflowProvider);
     return Container(
-      height: 70,
+      height: 60,
       margin: const EdgeInsets.only(bottom: 20),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -502,7 +538,9 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                       ),
                     ),
                     Text(
-                      _formatDuration(Duration(seconds: task.durationInSeconds)),
+                      _formatDuration(
+                        Duration(seconds: task.durationInSeconds),
+                      ),
                       style: GoogleFonts.quicksand(
                         fontWeight: FontWeight.w800,
                         fontSize: 13,
@@ -530,9 +568,7 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
         appearance: CircularSliderAppearance(
           animationEnabled: false,
           customColors: CustomSliderColors(
-            trackColor: MandarinaAppTheme.whiteBisColor.withValues(
-              alpha: 0.2,
-            ),
+            trackColor: MandarinaAppTheme.whiteBisColor.withValues(alpha: 0.2),
             progressBarColor: MandarinaAppTheme.whiteColor,
             dotColor: MandarinaAppTheme.whiteColor,
             shadowColor: Colors.transparent,
@@ -593,10 +629,7 @@ class _EditableTaskRow extends StatefulWidget {
   final WorkflowTask task;
   final WidgetRef ref;
 
-  const _EditableTaskRow({
-    required this.task,
-    required this.ref,
-  });
+  const _EditableTaskRow({required this.task, required this.ref});
 
   @override
   State<_EditableTaskRow> createState() => _EditableTaskRowState();
@@ -614,7 +647,8 @@ class _EditableTaskRowState extends State<_EditableTaskRow> {
   @override
   void didUpdateWidget(covariant _EditableTaskRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.task.name != widget.task.name && _controller.text != widget.task.name) {
+    if (oldWidget.task.name != widget.task.name &&
+        _controller.text != widget.task.name) {
       _controller.text = widget.task.name;
     }
   }
@@ -631,13 +665,9 @@ class _EditableTaskRowState extends State<_EditableTaskRow> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: MandarinaAppTheme.primaryColor.withValues(
-          alpha: 0.1,
-        ),
+        color: MandarinaAppTheme.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFF4F1DE),
-        ),
+        border: Border.all(color: const Color(0xFFF4F1DE)),
       ),
       child: Row(
         children: [
@@ -645,7 +675,9 @@ class _EditableTaskRowState extends State<_EditableTaskRow> {
             child: TextField(
               controller: _controller,
               onChanged: (value) {
-                widget.ref.read(workflowProvider.notifier).updateTaskName(widget.task.id, value);
+                widget.ref
+                    .read(workflowProvider.notifier)
+                    .updateTaskName(widget.task.id, value);
               },
               style: GoogleFonts.quicksand(
                 fontWeight: FontWeight.w700,
@@ -654,7 +686,10 @@ class _EditableTaskRowState extends State<_EditableTaskRow> {
               ),
               decoration: InputDecoration(
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 fillColor: MandarinaAppTheme.whiteColor,
                 filled: true,
                 border: OutlineInputBorder(
@@ -663,11 +698,18 @@ class _EditableTaskRowState extends State<_EditableTaskRow> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.5)),
+                  borderSide: BorderSide(
+                    color: MandarinaAppTheme.secondaryColor.withValues(
+                      alpha: 0.5,
+                    ),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: MandarinaAppTheme.primaryColor, width: 1),
+                  borderSide: const BorderSide(
+                    color: MandarinaAppTheme.primaryColor,
+                    width: 1,
+                  ),
                 ),
               ),
             ),

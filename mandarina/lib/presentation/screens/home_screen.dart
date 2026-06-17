@@ -10,6 +10,7 @@ import 'package:mandarina/presentation/viewmodel/state/sport_state.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/sport_notifier.dart';
 import 'package:mandarina/presentation/widgets/tag_selector.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
+import 'package:mandarina/providers/phrases_provider.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -64,7 +65,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  const Spacer(flex: 2), // Espaciador flexible
+                  // Frase Motivacional flotante/sutil (puramente transparente)
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final phrase = ref.watch(randomPhraseProvider);
+                      if (phrase.isEmpty) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          left: 24.0,
+                          right: 24.0,
+                          top: 4.0,
+                          bottom: 4.0,
+                        ),
+                        child: Text(
+                          phrase,
+                          textAlign: TextAlign.center,
+                          style: mandarinaTextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: MandarinaAppTheme.whiteColor.withValues(
+                              alpha: 0.75,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Spacer(flex: 1), // Espaciador flexible
+                  const SizedBox(height: 6),
                   //Cronometro General
                   _cronometer(
                     isSport: isSport,
@@ -75,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
 
                   const Spacer(flex: 1), // Espaciador flexible
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
 
                   _statsRow(),
 
@@ -104,7 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                   //const SizedBox(height: 30,),
-                  const Spacer(flex: 2), // Espaciador flexible
+                  const Spacer(flex: 1), // Espaciador flexible
                   // Play/Stop Button
                   _playButton(
                     isSport: isSport,
@@ -114,9 +142,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     sportState: sportState,
                   ),
 
-                  const SizedBox(
-                    height: 12,
-                  ), // Espacio rigido controlado para el texto explicativo
+                  // Espacio rigido controlado para el texto explicativo
+                  const SizedBox(height: 6),
                   //const Spacer(flex: 2,),
 
                   //Leyenda instructiva para parar el cronometro
@@ -230,18 +257,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     final double sliderMin = isSport
         ? 0.0
-        : (isStudyOrWork ? 1200 : (isRest ? 300 : 300));
+        : (pomoState.isRunning
+              ? 0.0
+              : (isStudyOrWork ? 1200 : (isRest ? 300 : 300)));
 
     final double sliderMax = isSport
         ? (sportState.isWorkInterval
                   ? sportState.workSeconds
                   : sportState.breakSeconds)
               .toDouble()
-        : (isStudyOrWork ? 3600 : (isRest ? 1800 : 7200));
+        : (pomoState.isRunning
+              ? pomoState.initialFocusedTime
+              : (isStudyOrWork ? 3600 : (isRest ? 1800 : 7200)));
 
     final double initialValue = isSport
         ? sportState.remainingSeconds.clamp(0, sliderMax.toInt()).toDouble()
-        : pomoState.focusedTime.clamp(sliderMin, sliderMax);
+        : (pomoState.isRunning
+              ? pomoState.focusedTime.clamp(0.0, pomoState.initialFocusedTime)
+              : pomoState.focusedTime.clamp(sliderMin, sliderMax));
 
     final String lottieAsset = isSport
         ? (sportState.isWorkInterval
@@ -278,6 +311,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             max: sliderMax <= sliderMin ? sliderMin + 1 : sliderMax + 1,
             appearance: CircularSliderAppearance(
               spinnerMode: false,
+              animationEnabled:
+                  !pomoState.isRunning && !sportState.isTimerRunning,
               customWidths: CustomSliderWidths(
                 trackWidth: 6,
                 handlerSize: 16,

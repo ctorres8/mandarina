@@ -3,7 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
+import 'package:mandarina/providers/phrases_provider.dart';
 
 /// ----------------------------------------------------------------------------
 /// MANDARINA COLOR SYSTEM & THEME DEFINITIONS
@@ -48,15 +50,15 @@ TextStyle mandarinaTextStyle({
 /// changes with smooth animations so you can run the screen instantly.
 /// In your actual app, you can easily plug in the stateless [MandarinaSettingsScreen]
 /// directly to your Riverpod state providers.
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen ({Key? key}) : super(key: key);
   static const String name = 'settings_screen';
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // --- Local State Variables (to be bound to Riverpod / State Management in prod) ---
   bool _keepScreenOn = false;
   String _selectedLanguage = 'Español (ES)';
@@ -110,11 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
           onCustomPhrasesPressed: () {
             HapticFeedback.lightImpact();
-            _showDialog(
-              context,
-              'Frases Personalizadas',
-              'Sube tus frases motivacionales o ingresa textos que Mandarina PET te mostrará para inspirarte.',
-            );
+            _showCustomPhrasesDialog(context);
           },
           onKeepScreenOnChanged: (val) {
             HapticFeedback.mediumImpact();
@@ -204,6 +202,224 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCustomPhrasesDialog(BuildContext context) {
+    final textController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: MandarinaAppTheme.whiteColor,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(dialogContext).size.height * 0.65,
+              maxWidth: 400,
+            ),
+            child: Consumer(
+              builder: (context, ref, child) {
+                final phrases = ref.watch(phrasesProvider);
+                final isLimitReached = phrases.length >= 10;
+
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Título y Contador
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Frases de Enfoque',
+                          style: mandarinaTextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: MandarinaAppTheme.primaryColor,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isLimitReached
+                                ? Colors.red.shade50
+                                : MandarinaAppTheme.primarySoftColor.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${phrases.length}/10',
+                            style: mandarinaTextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: isLimitReached
+                                  ? Colors.red.shade600
+                                  : MandarinaAppTheme.accentColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Agrega frases motivacionales que aparecerán en tus pantallas de enfoque.',
+                      style: mandarinaTextStyle(
+                        fontSize: 12,
+                        color: MandarinaAppTheme.blueColor.withValues(alpha: 0.7),
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // TextField + Botón "+"
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: textController,
+                            style: mandarinaTextStyle(
+                              fontSize: 14,
+                              color: MandarinaAppTheme.blueBisColor,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: isLimitReached
+                                  ? 'Límite alcanzado'
+                                  : 'Escribe tu frase aquí...',
+                              hintStyle: mandarinaTextStyle(
+                                fontSize: 13,
+                                color: MandarinaAppTheme.blueColor.withValues(alpha: 0.4),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              enabled: !isLimitReached,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: isLimitReached
+                              ? null
+                              : () {
+                                  final text = textController.text.trim();
+                                  if (text.isNotEmpty) {
+                                    ref.read(phrasesProvider.notifier).addPhrase(text);
+                                    textController.clear();
+                                    HapticFeedback.lightImpact();
+                                  }
+                                },
+                          icon: Icon(
+                            Icons.add_rounded,
+                            color: isLimitReached
+                                ? Colors.grey
+                                : MandarinaAppTheme.whiteColor,
+                          ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: isLimitReached
+                                ? Colors.grey.shade300
+                                : MandarinaAppTheme.accentColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.all(12),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Lista de frases
+                    Expanded(
+                      child: phrases.isEmpty
+                          ? Center(
+                              child: Text(
+                                'No hay frases personalizadas.',
+                                style: mandarinaTextStyle(
+                                  fontSize: 14,
+                                  color: MandarinaAppTheme.blueColor.withValues(alpha: 0.5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: phrases.length,
+                              itemBuilder: (context, index) {
+                                final phrase = phrases[index];
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: MandarinaAppTheme.primarySoftColor
+                                        .withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: MandarinaAppTheme.primarySoftColor
+                                          .withValues(alpha: 0.6),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          phrase,
+                                          style: mandarinaTextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: MandarinaAppTheme.blueBisColor,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          ref
+                                              .read(phrasesProvider.notifier)
+                                              .removePhrase(index);
+                                          HapticFeedback.lightImpact();
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: Colors.redAccent,
+                                          size: 20,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Botón Cerrar
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: Text(
+                          'Cerrar',
+                          style: mandarinaTextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: MandarinaAppTheme.blueColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 

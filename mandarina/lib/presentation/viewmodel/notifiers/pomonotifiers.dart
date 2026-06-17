@@ -57,7 +57,10 @@ class PomoNotifier extends Notifier<PomoState>{
 
     const oneSecond = Duration(seconds: 1);
 
-    state = state.copyWith(isRunning: true); // pongo el estado como corriendo
+    state = state.copyWith(
+      isRunning: true,
+      initialFocusedTime: state.focusedTime,
+    ); // pongo el estado como corriendo y guardo el tiempo inicial
 
     _timer=Timer.periodic(
       oneSecond, 
@@ -84,7 +87,10 @@ class PomoNotifier extends Notifier<PomoState>{
 
   void resetTimer(){
     _stopTimer();
-    state=state.copyWith(focusedTime:1500.0); //reseteo con 25 minutos
+    state=state.copyWith(
+      focusedTime: 1500.0,
+      initialFocusedTime: 1500.0,
+    ); //reseteo con 25 minutos
   }
 
   void startCancelCountdown(){
@@ -165,21 +171,21 @@ class PomoNotifier extends Notifier<PomoState>{
       double roundedSeconds = (seconds / step).roundToDouble() * step;
       if (roundedSeconds < 1200) roundedSeconds = 1200; // Mínimo 20 minutos
       if (roundedSeconds > 3600) roundedSeconds = 3600; // Máximo 60 minutos
-      state = state.copyWith(focusedTime: roundedSeconds);
+      state = state.copyWith(focusedTime: roundedSeconds, initialFocusedTime: roundedSeconds);
     } else if (isRest) {
       // Rango permitido para descanso 5-30 minutos con saltos fijos de 5 minutos
       const int step = 300;
       double roundedSeconds = (seconds / step).roundToDouble() * step;
       if (roundedSeconds < 300) roundedSeconds = 300; // Mínimo 5 minutos
       if (roundedSeconds > 1800) roundedSeconds = 1800; // Máximo 30 minutos
-      state = state.copyWith(focusedTime: roundedSeconds);
+      state = state.copyWith(focusedTime: roundedSeconds, initialFocusedTime: roundedSeconds);
     } else {
       // Deporte u otros
       const int step = 300;
       double roundedSeconds = (seconds / step).roundToDouble() * step;
       if (roundedSeconds < 300) roundedSeconds = 300;
       if (roundedSeconds > 7200) roundedSeconds = 7200;
-      state = state.copyWith(focusedTime: roundedSeconds);
+      state = state.copyWith(focusedTime: roundedSeconds, initialFocusedTime: roundedSeconds);
     }
   }
 

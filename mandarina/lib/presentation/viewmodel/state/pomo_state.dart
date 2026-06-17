@@ -7,6 +7,7 @@ class PomoState {
   final Task currentTask;
   final Activity activity;
   final double focusedTime;
+  final double initialFocusedTime;
   final bool isRunning;
   final double holdingProgress;
   final int sessionsCount;
@@ -19,13 +20,15 @@ class PomoState {
     Task? currentTask,
     this.activity=Activity.work,
     this.focusedTime=1500.0, // 25 minutos en segundos
+    double? initialFocusedTime,
     this.isRunning=false,
     this.holdingProgress = 0.0,
     this.sessionsCount = 4,
     this.sportRoutine,
     this.sesionesCompletadas = 0,
     this.sesionesTotales = 4,
-  }) : currentTask = currentTask ?? taskList.first;
+  }) : currentTask = currentTask ?? taskList.first,
+       initialFocusedTime = initialFocusedTime ?? focusedTime;
 
   //getters
   bool get timerIsRunning => isRunning;
@@ -38,6 +41,7 @@ class PomoState {
     Task? currentTask,
     Activity? activity,
     double? focusedTime,
+    double? initialFocusedTime,
     bool? isRunning,
     double? holdingProgress,
     int? sessionsCount,
@@ -49,6 +53,7 @@ class PomoState {
       currentTask: currentTask ?? this.currentTask,
       activity: activity ?? this.activity,
       focusedTime: focusedTime ?? this.focusedTime,
+      initialFocusedTime: initialFocusedTime ?? this.initialFocusedTime,
       isRunning: isRunning ?? this.isRunning,
       holdingProgress: holdingProgress ?? this.holdingProgress,
       sessionsCount: sessionsCount ?? this.sessionsCount,
