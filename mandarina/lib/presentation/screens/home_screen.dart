@@ -10,7 +10,7 @@ import 'package:mandarina/presentation/viewmodel/state/sport_state.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/sport_notifier.dart';
 import 'package:mandarina/presentation/widgets/tag_selector.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
-import 'package:mandarina/providers/phrases_provider.dart';
+import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {

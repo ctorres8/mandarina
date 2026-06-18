@@ -5,22 +5,40 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
-import 'package:mandarina/providers/phrases_provider.dart';
+import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
 
 /// ----------------------------------------------------------------------------
 /// MANDARINA COLOR SYSTEM & THEME DEFINITIONS
 /// ----------------------------------------------------------------------------
 class MandarinaColors {
-  static const Color background = Color(0xFFFCFAF7);   // Ultra-warm light grey/white background
-  static const Color cardBg = Colors.white;            // Pure white cards for separation
-  static const Color orangeAccent = Color(0xFFFF6B35);  // Vibrant Mandarina Orange accent
-  static const Color orangeLight = Color(0xFFFFF0EA);   // Very soft pastel peach for active background elements
-  static const Color textPrimary = Color(0xFF2D2520);   // Elegant dark charcoal with warm undertones
-  static const Color textSecondary = Color(0xFF8B8178); // Soft warm grey for subtitles
-  static const Color divider = Color(0xFFF3ECE6);       // Delicate divider for list separation
-  static const Color successGreen = Color(0xFF43A047);  // Pure green for connectivity and battery
-  static const Color shadowColor = Color(0x062D2520);   // Barely visible dark warm shadow
-  static const Color iconBgLight = Color(0xFFFAF5F0);   // Beautiful background circle for list icons
+  static const Color background = Color(
+    0xFFFCFAF7,
+  ); // Ultra-warm light grey/white background
+  static const Color cardBg = Colors.white; // Pure white cards for separation
+  static const Color orangeAccent = Color(
+    0xFFFF6B35,
+  ); // Vibrant Mandarina Orange accent
+  static const Color orangeLight = Color(
+    0xFFFFF0EA,
+  ); // Very soft pastel peach for active background elements
+  static const Color textPrimary = Color(
+    0xFF2D2520,
+  ); // Elegant dark charcoal with warm undertones
+  static const Color textSecondary = Color(
+    0xFF8B8178,
+  ); // Soft warm grey for subtitles
+  static const Color divider = Color(
+    0xFFF3ECE6,
+  ); // Delicate divider for list separation
+  static const Color successGreen = Color(
+    0xFF43A047,
+  ); // Pure green for connectivity and battery
+  static const Color shadowColor = Color(
+    0x062D2520,
+  ); // Barely visible dark warm shadow
+  static const Color iconBgLight = Color(
+    0xFFFAF5F0,
+  ); // Beautiful background circle for list icons
   static const Color iconColorWarm = Color(0xFF6E645C); // Standard icon color
 }
 
@@ -51,7 +69,7 @@ TextStyle mandarinaTextStyle({
 /// In your actual app, you can easily plug in the stateless [MandarinaSettingsScreen]
 /// directly to your Riverpod state providers.
 class SettingsScreen extends ConsumerStatefulWidget {
-  const SettingsScreen ({Key? key}) : super(key: key);
+  const SettingsScreen({Key? key}) : super(key: key);
   static const String name = 'settings_screen';
 
   @override
@@ -193,12 +211,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: MandarinaAppTheme.whiteColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(title, style: mandarinaTextStyle(fontWeight: FontWeight.bold, color: MandarinaAppTheme.primaryColor)),
-        content: Text(text, style: mandarinaTextStyle(color: MandarinaAppTheme.blueColor, height: 1.4,fontWeight: FontWeight.w600)),
+        title: Text(
+          title,
+          style: mandarinaTextStyle(
+            fontWeight: FontWeight.bold,
+            color: MandarinaAppTheme.primaryColor,
+          ),
+        ),
+        content: Text(
+          text,
+          style: mandarinaTextStyle(
+            color: MandarinaAppTheme.blueColor,
+            height: 1.4,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Entendido', style: mandarinaTextStyle(fontWeight: FontWeight.bold, color: MandarinaAppTheme.accentColor)),
+            child: Text(
+              'Entendido',
+              style: mandarinaTextStyle(
+                fontWeight: FontWeight.bold,
+                color: MandarinaAppTheme.accentColor,
+              ),
+            ),
           ),
         ],
       ),
@@ -213,7 +250,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (dialogContext) {
         return Dialog(
           backgroundColor: MandarinaAppTheme.whiteColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Container(
             padding: const EdgeInsets.all(20),
             constraints: BoxConstraints(
@@ -242,11 +281,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: isLimitReached
                                 ? Colors.red.shade50
-                                : MandarinaAppTheme.primarySoftColor.withValues(alpha: 0.7),
+                                : MandarinaAppTheme.primarySoftColor.withValues(
+                                    alpha: 0.7,
+                                  ),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -267,7 +311,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       'Agrega frases motivacionales que aparecerán en tus pantallas de enfoque.',
                       style: mandarinaTextStyle(
                         fontSize: 12,
-                        color: MandarinaAppTheme.blueColor.withValues(alpha: 0.7),
+                        color: MandarinaAppTheme.blueColor.withValues(
+                          alpha: 0.7,
+                        ),
                         height: 1.3,
                       ),
                     ),
@@ -288,7 +334,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   : 'Escribe tu frase aquí...',
                               hintStyle: mandarinaTextStyle(
                                 fontSize: 13,
-                                color: MandarinaAppTheme.blueColor.withValues(alpha: 0.4),
+                                color: MandarinaAppTheme.blueColor.withValues(
+                                  alpha: 0.4,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -305,7 +353,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               : () {
                                   final text = textController.text.trim();
                                   if (text.isNotEmpty) {
-                                    ref.read(phrasesProvider.notifier).addPhrase(text);
+                                    ref
+                                        .read(phrasesProvider.notifier)
+                                        .addPhrase(text);
                                     textController.clear();
                                     HapticFeedback.lightImpact();
                                   }
@@ -337,7 +387,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 'No hay frases personalizadas.',
                                 style: mandarinaTextStyle(
                                   fontSize: 14,
-                                  color: MandarinaAppTheme.blueColor.withValues(alpha: 0.5),
+                                  color: MandarinaAppTheme.blueColor.withValues(
+                                    alpha: 0.5,
+                                  ),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -371,7 +423,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                           style: mandarinaTextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
-                                            color: MandarinaAppTheme.blueBisColor,
+                                            color:
+                                                MandarinaAppTheme.blueBisColor,
                                           ),
                                         ),
                                       ),
@@ -427,9 +480,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: MandarinaAppTheme.whiteColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (context) {
-        final languages = ['Español (ES)', 'English (US)', 'Português (BR)', 'Français (FR)'];
+        final languages = [
+          'Español (ES)',
+          'English (US)',
+          'Português (BR)',
+          'Français (FR)',
+        ];
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
@@ -439,7 +499,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(
                   'Seleccionar Idioma',
-                  style: mandarinaTextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MandarinaAppTheme.blueColor),
+                  style: mandarinaTextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: MandarinaAppTheme.blueColor,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 ...languages.map((lang) {
@@ -449,12 +513,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: Text(
                       lang,
                       style: mandarinaTextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? MandarinaAppTheme.accentColor : MandarinaAppTheme.blueColor,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? MandarinaAppTheme.accentColor
+                            : MandarinaAppTheme.blueColor,
                       ),
                     ),
                     trailing: isSelected
-                        ? const Icon(Icons.check_rounded, color: MandarinaAppTheme.accentColor)
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: MandarinaAppTheme.accentColor,
+                          )
                         : null,
                     onTap: () {
                       HapticFeedback.lightImpact();
@@ -477,7 +548,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: MandarinaAppTheme.whiteColor,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (context) {
         final days = ['Lunes', 'Domingo'];
         return SafeArea(
@@ -489,7 +562,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text(
                   'Primer día de la semana',
-                  style: mandarinaTextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MandarinaAppTheme.blueColor),
+                  style: mandarinaTextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: MandarinaAppTheme.blueColor,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 ...days.map((day) {
@@ -499,12 +576,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: Text(
                       day,
                       style: mandarinaTextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? MandarinaAppTheme.accentColor : MandarinaAppTheme.blueColor,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? MandarinaAppTheme.accentColor
+                            : MandarinaAppTheme.blueColor,
                       ),
                     ),
                     trailing: isSelected
-                        ? const Icon(Icons.check_rounded, color: MandarinaAppTheme.accentColor)
+                        ? const Icon(
+                            Icons.check_rounded,
+                            color: MandarinaAppTheme.accentColor,
+                          )
                         : null,
                     onTap: () {
                       HapticFeedback.lightImpact();
@@ -529,7 +613,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       backgroundColor: MandarinaAppTheme.whiteColor,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -544,21 +630,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: [
               Text(
                 'Enviar una sugerencia',
-                style: mandarinaTextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: MandarinaAppTheme.primaryColor),
+                style: mandarinaTextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: MandarinaAppTheme.primaryColor,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Tus ideas hacen crecer a Mandarina. Cuéntanos qué te gustaría mejorar o qué función extra esperas de tu PET.',
-                style: mandarinaTextStyle(fontSize: 13, color: MandarinaAppTheme.blueColor, height: 1.4),
+                style: mandarinaTextStyle(
+                  fontSize: 13,
+                  color: MandarinaAppTheme.blueColor,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: textController,
                 maxLines: 4,
-                style: mandarinaTextStyle(color: MandarinaAppTheme.primaryOrangeColor),
+                style: mandarinaTextStyle(
+                  color: MandarinaAppTheme.primaryOrangeColor,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Escribe tu sugerencia aquí...',
-                  hintStyle: mandarinaTextStyle(color: MandarinaAppTheme.primaryOrangeColor.withAlpha(100)),
+                  hintStyle: mandarinaTextStyle(
+                    color: MandarinaAppTheme.primaryOrangeColor.withAlpha(100),
+                  ),
                   filled: true,
                   fillColor: MandarinaAppTheme.whiteBisColor.withAlpha(70),
                   border: OutlineInputBorder(
@@ -567,7 +665,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: MandarinaAppTheme.primaryOrangeColor, width: 1.5),
+                    borderSide: BorderSide(
+                      color: MandarinaAppTheme.primaryOrangeColor,
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
@@ -578,14 +679,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (textController.text.trim().isNotEmpty) {
-                      HapticFeedback.lightImpact();//.successImpact(); **************************
+                      HapticFeedback.lightImpact(); //.successImpact(); **************************
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('¡Gracias! Sugerencia recibida con éxito.', style: mandarinaTextStyle(color: MandarinaAppTheme.whiteColor)),
+                          content: Text(
+                            '¡Gracias! Sugerencia recibida con éxito.',
+                            style: mandarinaTextStyle(
+                              color: MandarinaAppTheme.whiteColor,
+                            ),
+                          ),
                           backgroundColor: MandarinaAppTheme.blueColor,
                           behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                       );
                     }
@@ -593,11 +701,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: MandarinaAppTheme.primaryOrangeColor,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: Text(
                     'Enviar sugerencia',
-                    style: mandarinaTextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MandarinaAppTheme.whiteColor),
+                    style: mandarinaTextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: MandarinaAppTheme.whiteColor,
+                    ),
                   ),
                 ),
               ),
@@ -620,16 +734,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Beautiful Custom Mandarina Vector Logo inside Flutter
-              Image.asset('assets/images/logo_naranja.png',scale:4,),
+              Image.asset('assets/images/logo_naranja.png', scale: 4),
               const SizedBox(height: 10),
               Text(
                 'Mandarina',
-                style: mandarinaTextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: MandarinaAppTheme.primaryColor),
+                style: mandarinaTextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: MandarinaAppTheme.primaryColor,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 'Tu ecosistema de productividad',
-                style: mandarinaTextStyle(fontSize: 13, color: MandarinaAppTheme.primaryColor),
+                style: mandarinaTextStyle(
+                  fontSize: 13,
+                  color: MandarinaAppTheme.primaryColor,
+                ),
               ),
               const SizedBox(height: 20),
               Container(
@@ -658,12 +779,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Text(
                 'Diseñada para potenciar tu\nespacio de trabajo.',
                 textAlign: TextAlign.center,
-                style: mandarinaTextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: MandarinaAppTheme.primaryColor),
+                style: mandarinaTextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: MandarinaAppTheme.primaryColor,
+                ),
               ),
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cerrar', style: mandarinaTextStyle(fontWeight: FontWeight.bold, color: MandarinaAppTheme.blueColor)),
+                child: Text(
+                  'Cerrar',
+                  style: mandarinaTextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: MandarinaAppTheme.blueColor,
+                  ),
+                ),
               ),
             ],
           ),
@@ -676,8 +807,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: mandarinaTextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: MandarinaAppTheme.primaryColor)),
-        Text(value, style: mandarinaTextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: MandarinaAppTheme.blueBisColor)),
+        Text(
+          label,
+          style: mandarinaTextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: MandarinaAppTheme.primaryColor,
+          ),
+        ),
+        Text(
+          value,
+          style: mandarinaTextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: MandarinaAppTheme.blueBisColor,
+          ),
+        ),
       ],
     );
   }
@@ -761,39 +906,43 @@ class MandarinaSettingsScreen extends StatelessWidget {
         systemNavigationBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: MandarinaAppTheme.backgroundSettingsColor,//primaryOrangeColor.withAlpha(100),
-        
+        backgroundColor: MandarinaAppTheme
+            .backgroundSettingsColor, //primaryOrangeColor.withAlpha(100),
+
         body: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // --- PREMIUM APPBAR ---
-              SliverAppBar(
-                floating: true,
-                //snap: true,
-                pinned: false,
-                iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
-                title: Text(
-                  'Ajustes',
-                  style: GoogleFonts.quicksand(
-                    color: MandarinaAppTheme.whiteColor,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  ),//Image.asset('assets/images/logo_blanco.png',scale:18,),
-                centerTitle: true,
-                elevation: 0,
-                backgroundColor: MandarinaAppTheme.primaryColor,//backgroundSettingsColor,
-                surfaceTintColor: Colors.transparent,
-                leading: IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const FaIcon(
-                    FontAwesomeIcons.chevronLeft, 
-                    size: 16,
-                    color: MandarinaAppTheme.whiteColor,
-                  ),
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // --- PREMIUM APPBAR ---
+            SliverAppBar(
+              floating: true,
+              //snap: true,
+              pinned: false,
+              iconTheme: const IconThemeData(
+                color: MandarinaAppTheme.whiteColor,
+              ),
+              title: Text(
+                'Ajustes',
+                style: GoogleFonts.quicksand(
+                  color: MandarinaAppTheme.whiteColor,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ), //Image.asset('assets/images/logo_blanco.png',scale:18,),
+              centerTitle: true,
+              elevation: 0,
+              backgroundColor:
+                  MandarinaAppTheme.primaryColor, //backgroundSettingsColor,
+              surfaceTintColor: Colors.transparent,
+              leading: IconButton(
+                onPressed: () => context.pop(),
+                icon: const FaIcon(
+                  FontAwesomeIcons.chevronLeft,
+                  size: 16,
+                  color: MandarinaAppTheme.whiteColor,
                 ),
               ),
-              /*
+            ),
+            /*
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 10.0, bottom: 8.0),
@@ -814,267 +963,302 @@ class MandarinaSettingsScreen extends StatelessWidget {
               ),
               */
 
-              // --- MAIN SETTINGS LIST ---
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    
-                    // ==========================================
-                    // BLOQUE 1: Ajustes Generales
-                    // ==========================================
-                    _buildSectionHeader('Ajustes Generales'),
-                    MandarinaCard(
-                      children: [
-                        MandarinaListTile(
-                          icon: Icons.app_blocking_rounded,
-                          title: 'Lista de apps permitidas',
-                          subtitle: 'Elige qué apps puedes abrir en tus focos',
-                          onTap: onManageAllowedAppsPressed,
-                        ),
-                        const MandarinaDivider(),
-                        MandarinaListTile(
-                          icon: Icons.format_quote_rounded,
-                          title: 'Frases personalizadas',
-                          subtitle: 'Tus propios mensajes inspiradores',
-                          onTap: onCustomPhrasesPressed,
-                        ),
-                        const MandarinaDivider(),
-                        MandarinaSwitchTile(
-                          icon: Icons.screen_lock_rotation_rounded,
-                          title: 'No apagar pantalla',
-                          subtitle: 'Mantener pantalla activa durante el enfoque',
-                          value: keepScreenOn,
-                          onChanged: onKeepScreenOnChanged,
-                        ),
-                        const MandarinaDivider(),
-                        MandarinaListTile(
-                          icon: Icons.translate_rounded,
-                          title: 'Cambiar Idioma',
-                          subtitle: selectedLanguage,
-                          onTap: onChangeLanguagePressed,
-                        ),
-                        const MandarinaDivider(),
-                        MandarinaListTile(
-                          icon: Icons.calendar_today_rounded,
-                          title: 'Primer día de la semana',
-                          subtitle: firstDayOfWeek,
-                          onTap: onFirstDayOfWeekPressed,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+            // --- MAIN SETTINGS LIST ---
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 16.0,
+              ),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // ==========================================
+                  // BLOQUE 1: Ajustes Generales
+                  // ==========================================
+                  _buildSectionHeader('Ajustes Generales'),
+                  MandarinaCard(
+                    children: [
+                      MandarinaListTile(
+                        icon: Icons.app_blocking_rounded,
+                        title: 'Lista de apps permitidas',
+                        subtitle: 'Elige qué apps puedes abrir en tus focos',
+                        onTap: onManageAllowedAppsPressed,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaListTile(
+                        icon: Icons.format_quote_rounded,
+                        title: 'Frases personalizadas',
+                        subtitle: 'Tus propios mensajes inspiradores',
+                        onTap: onCustomPhrasesPressed,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaSwitchTile(
+                        icon: Icons.screen_lock_rotation_rounded,
+                        title: 'No apagar pantalla',
+                        subtitle: 'Mantener pantalla activa durante el enfoque',
+                        value: keepScreenOn,
+                        onChanged: onKeepScreenOnChanged,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaListTile(
+                        icon: Icons.translate_rounded,
+                        title: 'Cambiar Idioma',
+                        subtitle: selectedLanguage,
+                        onTap: onChangeLanguagePressed,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaListTile(
+                        icon: Icons.calendar_today_rounded,
+                        title: 'Primer día de la semana',
+                        subtitle: firstDayOfWeek,
+                        onTap: onFirstDayOfWeekPressed,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
 
-                    // ==========================================
-                    // BLOQUE 2: Mandarina PET (Dispositivo)
-                    // ==========================================
-                    _buildSectionHeader('Mandarina PET'),
-                    MandarinaCard(
-                      children: [
-                        // Estado de Conexión
-                        MandarinaListTile(
-                          icon: Icons.bluetooth_connected_rounded,
-                          iconBgColor: petConnected
-                              ? MandarinaColors.orangeLight
-                              : MandarinaColors.background,
-                          iconColor: petConnected
-                              ? MandarinaColors.orangeAccent
-                              : MandarinaColors.textSecondary,
-                          title: 'Mandarina PET',
-                          subtitle: petConnected ? 'Dispositivo conectado' : 'Desconectado',
-                          onTap: onPetConnectionDetailsPressed,
-                          trailing: petConnected
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    BatteryIndicator(level: petBatteryLevel),
-                                    const SizedBox(width: 8),
-                                    const FaIcon(
-                                      FontAwesomeIcons.chevronRight,//Icons.chevron_right_rounded,
-                                      color: MandarinaAppTheme.blueColor,
-                                      size: 12,
-                                    ),
-                                  ],
-                                )
-                              : Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade50,
-                                    borderRadius: BorderRadius.circular(12),
+                  // ==========================================
+                  // BLOQUE 2: Mandarina PET (Dispositivo)
+                  // ==========================================
+                  _buildSectionHeader('Mandarina PET'),
+                  MandarinaCard(
+                    children: [
+                      // Estado de Conexión
+                      MandarinaListTile(
+                        icon: Icons.bluetooth_connected_rounded,
+                        iconBgColor: petConnected
+                            ? MandarinaColors.orangeLight
+                            : MandarinaColors.background,
+                        iconColor: petConnected
+                            ? MandarinaColors.orangeAccent
+                            : MandarinaColors.textSecondary,
+                        title: 'Mandarina PET',
+                        subtitle: petConnected
+                            ? 'Dispositivo conectado'
+                            : 'Desconectado',
+                        onTap: onPetConnectionDetailsPressed,
+                        trailing: petConnected
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  BatteryIndicator(level: petBatteryLevel),
+                                  const SizedBox(width: 8),
+                                  const FaIcon(
+                                    FontAwesomeIcons
+                                        .chevronRight, //Icons.chevron_right_rounded,
+                                    color: MandarinaAppTheme.blueColor,
+                                    size: 12,
                                   ),
-                                  child: Text(
-                                    'Desconectado',
-                                    style: mandarinaTextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red.shade600,
-                                    ),
-                                  ),
+                                ],
+                              )
+                            : Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                        ),
-                        const MandarinaDivider(),
-                        
-                        // Luces RGB Switch + Slider
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            MandarinaSwitchTile(
-                              icon: Icons.palette_rounded,
-                              title: 'Luces RGB',
-                              subtitle: 'Anillo de luz ambiental LED interactivo',
-                              value: petRgbLightsOn,
-                              onChanged: onPetRgbLightsChanged,
-                            ),
-                            // Smoothly animate the expansion of the Slider
-                            AnimatedCrossFade(
-                              duration: const Duration(milliseconds: 300),
-                              firstChild: Container(),
-                              secondChild: Padding(
-                                padding: const EdgeInsets.only(left: 68.0, right: 24.0, bottom: 20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Brillo en las luces LED',
-                                          style: mandarinaTextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: MandarinaAppTheme.blueColor,
-                                          ),
-                                        ),
-                                        Text(
-                                          '${(petRgbBrightness * 100).toInt()}%',
-                                          style: mandarinaTextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.bold,
-                                            color: MandarinaAppTheme.accentColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.wb_sunny_outlined, size: 16, color: MandarinaAppTheme.blueColor),
-                                        Expanded(
-                                          child: SliderTheme(
-                                            data: SliderThemeData(
-                                              trackHeight: 4,
-                                              activeTrackColor: MandarinaAppTheme.accentColor,
-                                              inactiveTrackColor: MandarinaAppTheme.primaryOrangeColor.withValues(alpha:0.2),
-                                              thumbColor: MandarinaAppTheme.accentColor,
-                                              overlayColor: MandarinaAppTheme.accentColor.withAlpha(20),
-                                              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                                              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-                                            ),
-                                            child: Slider(
-                                              value: petRgbBrightness,
-                                              onChanged: onPetRgbBrightnessChanged,
-                                            ),
-                                          ),
-                                        ),
-                                        const Icon(Icons.wb_sunny_rounded, size: 16, color: MandarinaAppTheme.accentColor),
-                                      ],
-                                    ),
-                                  ],
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'Desconectado',
+                                  style: mandarinaTextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red.shade600,
+                                  ),
                                 ),
                               ),
-                              crossFadeState: petRgbLightsOn
-                                  ? CrossFadeState.showSecond
-                                  : CrossFadeState.showFirst,
-                            ),
-                          ],
-                        ),
-                        const MandarinaDivider(),
+                      ),
+                      const MandarinaDivider(),
 
-                        // Alertas de Sonido (Buzzer)
-                        MandarinaSwitchTile(
-                          icon: Icons.volume_up_rounded,
-                          title: 'Alertas de Sonido (Buzzer)',
-                          subtitle: 'Alertas físicas en tonos divertidos de 8-bit',
-                          value: petSoundAlertsOn,
-                          onChanged: onPetSoundAlertsChanged,
-                        ),
-                        const MandarinaDivider(),
-
-                        // Brillo Automático (Sensor LDR)
-                        MandarinaSwitchTile(
-                          icon: Icons.hdr_auto_rounded,
-                          title: 'Brillo Automático (Sensor LDR)',
-                          subtitle: 'Ajuste inteligente de luz según el entorno',
-                          value: petAutoBrightnessOn,
-                          onChanged: onPetAutoBrightnessChanged,
-                        ),
-                        const MandarinaDivider(),
-
-                        // Acelerómetro / Despertar por Movimiento
-                        MandarinaSwitchTile(
-                          icon: Icons.edgesensor_high_rounded,
-                          title: 'Despertar por Movimiento',
-                          subtitle: 'Wake-on-motion activo para ahorrar energía',
-                          value: petWakeOnMotion,
-                          onChanged: onPetWakeOnMotionChanged,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ==========================================
-                    // BLOQUE 3: Soporte y Comunidad
-                    // ==========================================
-                    _buildSectionHeader('Soporte y Comunidad'),
-                    MandarinaCard(
-                      children: [
-                        MandarinaListTile(
-                          icon: Icons.chat_bubble_outline_rounded,
-                          title: 'Enviar una sugerencia',
-                          subtitle: 'Escríbenos ideas para Mandarina',
-                          onTap: onSendFeedbackPressed,
-                        ),
-                        const MandarinaDivider(),
-                        MandarinaListTile(
-                          icon: Icons.menu_book_rounded,
-                          title: 'Página de Notion',
-                          subtitle: 'Documentación oficial y guías',
-                          trailing: Icon(
-                            Icons.open_in_new_rounded,
-                            color: MandarinaAppTheme.blueColor,
-                            size: 18,
+                      // Luces RGB Switch + Slider
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          MandarinaSwitchTile(
+                            icon: Icons.palette_rounded,
+                            title: 'Luces RGB',
+                            subtitle: 'Anillo de luz ambiental LED interactivo',
+                            value: petRgbLightsOn,
+                            onChanged: onPetRgbLightsChanged,
                           ),
-                          onTap: onNotionPagePressed,
-                        ),
-                        const MandarinaDivider(),
-                        MandarinaListTile(
-                          icon: Icons.info_outline_rounded,
-                          title: 'Sobre el proyecto',
-                          subtitle: 'Información de versión, firmware y créditos',
-                          onTap: onAboutMandarinaPressed,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
+                          // Smoothly animate the expansion of the Slider
+                          AnimatedCrossFade(
+                            duration: const Duration(milliseconds: 300),
+                            firstChild: Container(),
+                            secondChild: Padding(
+                              padding: const EdgeInsets.only(
+                                left: 68.0,
+                                right: 24.0,
+                                bottom: 20.0,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Brillo en las luces LED',
+                                        style: mandarinaTextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: MandarinaAppTheme.blueColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${(petRgbBrightness * 100).toInt()}%',
+                                        style: mandarinaTextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: MandarinaAppTheme.accentColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.wb_sunny_outlined,
+                                        size: 16,
+                                        color: MandarinaAppTheme.blueColor,
+                                      ),
+                                      Expanded(
+                                        child: SliderTheme(
+                                          data: SliderThemeData(
+                                            trackHeight: 4,
+                                            activeTrackColor:
+                                                MandarinaAppTheme.accentColor,
+                                            inactiveTrackColor:
+                                                MandarinaAppTheme
+                                                    .primaryOrangeColor
+                                                    .withValues(alpha: 0.2),
+                                            thumbColor:
+                                                MandarinaAppTheme.accentColor,
+                                            overlayColor: MandarinaAppTheme
+                                                .accentColor
+                                                .withAlpha(20),
+                                            thumbShape:
+                                                const RoundSliderThumbShape(
+                                                  enabledThumbRadius: 7,
+                                                ),
+                                            overlayShape:
+                                                const RoundSliderOverlayShape(
+                                                  overlayRadius: 16,
+                                                ),
+                                          ),
+                                          child: Slider(
+                                            value: petRgbBrightness,
+                                            onChanged:
+                                                onPetRgbBrightnessChanged,
+                                          ),
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.wb_sunny_rounded,
+                                        size: 16,
+                                        color: MandarinaAppTheme.accentColor,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            crossFadeState: petRgbLightsOn
+                                ? CrossFadeState.showSecond
+                                : CrossFadeState.showFirst,
+                          ),
+                        ],
+                      ),
+                      const MandarinaDivider(),
 
-                    // Soft minimalist credits at the very bottom
-                    Center(
-                      child: Text(
-                        'Mandarina • IoT Ecosystem\nv$appVersion',
-                        textAlign: TextAlign.center,
-                        style: mandarinaTextStyle(
-                          fontSize: 12,
-                          color: MandarinaAppTheme.blueColor.withAlpha(150),
-                          height: 1.5,
+                      // Alertas de Sonido (Buzzer)
+                      MandarinaSwitchTile(
+                        icon: Icons.volume_up_rounded,
+                        title: 'Alertas de Sonido (Buzzer)',
+                        subtitle:
+                            'Alertas físicas en tonos divertidos de 8-bit',
+                        value: petSoundAlertsOn,
+                        onChanged: onPetSoundAlertsChanged,
+                      ),
+                      const MandarinaDivider(),
+
+                      // Brillo Automático (Sensor LDR)
+                      MandarinaSwitchTile(
+                        icon: Icons.hdr_auto_rounded,
+                        title: 'Brillo Automático (Sensor LDR)',
+                        subtitle: 'Ajuste inteligente de luz según el entorno',
+                        value: petAutoBrightnessOn,
+                        onChanged: onPetAutoBrightnessChanged,
+                      ),
+                      const MandarinaDivider(),
+
+                      // Acelerómetro / Despertar por Movimiento
+                      MandarinaSwitchTile(
+                        icon: Icons.edgesensor_high_rounded,
+                        title: 'Despertar por Movimiento',
+                        subtitle: 'Wake-on-motion activo para ahorrar energía',
+                        value: petWakeOnMotion,
+                        onChanged: onPetWakeOnMotionChanged,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ==========================================
+                  // BLOQUE 3: Soporte y Comunidad
+                  // ==========================================
+                  _buildSectionHeader('Soporte y Comunidad'),
+                  MandarinaCard(
+                    children: [
+                      MandarinaListTile(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        title: 'Enviar una sugerencia',
+                        subtitle: 'Escríbenos ideas para Mandarina',
+                        onTap: onSendFeedbackPressed,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaListTile(
+                        icon: Icons.menu_book_rounded,
+                        title: 'Página de Notion',
+                        subtitle: 'Documentación oficial y guías',
+                        trailing: Icon(
+                          Icons.open_in_new_rounded,
+                          color: MandarinaAppTheme.blueColor,
+                          size: 18,
                         ),
+                        onTap: onNotionPagePressed,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaListTile(
+                        icon: Icons.info_outline_rounded,
+                        title: 'Sobre el proyecto',
+                        subtitle: 'Información de versión, firmware y créditos',
+                        onTap: onAboutMandarinaPressed,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
+
+                  // Soft minimalist credits at the very bottom
+                  Center(
+                    child: Text(
+                      'Mandarina • IoT Ecosystem\nv$appVersion',
+                      textAlign: TextAlign.center,
+                      style: mandarinaTextStyle(
+                        fontSize: 12,
+                        color: MandarinaAppTheme.blueColor.withAlpha(150),
+                        height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                  ]),
-                ),
+                  ),
+                  const SizedBox(height: 32),
+                ]),
               ),
-            ],
-
+            ),
+          ],
         ),
       ),
     );
@@ -1096,14 +1280,15 @@ class MandarinaSettingsScreen extends StatelessWidget {
             ),
           ),
           */
-          Image.asset('assets/images/logo_naranja.png',scale:24,),
+          Image.asset('assets/images/logo_naranja.png', scale: 24),
           const SizedBox(width: 8),
           Text(
             title.toUpperCase(),
             style: GoogleFonts.quicksand(
               fontSize: 12,
               fontWeight: FontWeight.w900,
-              color: MandarinaAppTheme.blueColor,//MandarinaColors.textSecondary,
+              color:
+                  MandarinaAppTheme.blueColor, //MandarinaColors.textSecondary,
               letterSpacing: 1.3,
             ),
           ),
@@ -1126,23 +1311,22 @@ class MandarinaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: MandarinaAppTheme.whiteColor,//MandarinaColors.cardBg,
+        color: MandarinaAppTheme.whiteColor, //MandarinaColors.cardBg,
         borderRadius: BorderRadius.circular(24),
-        
+
         boxShadow: [
           BoxShadow(
-            color: MandarinaAppTheme.darkBlueColor.withAlpha(40),//MandarinaColors.shadowColor,
+            color: MandarinaAppTheme.darkBlueColor.withAlpha(
+              40,
+            ), //MandarinaColors.shadowColor,
             blurRadius: 16,
             offset: Offset(0, 8),
           ),
         ],
-        
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: Column(
-          children: children,
-        ),
+        child: Column(children: children),
       ),
     );
   }
@@ -1173,7 +1357,7 @@ class MandarinaListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      splashColor: Colors.transparent,//MandarinaColors.orangeLight,
+      splashColor: Colors.transparent, //MandarinaColors.orangeLight,
       //highlightColor: MandarinaAppTheme.primaryColor,//MandarinaColors.orangeLight.withOpacity(0.5),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -1183,12 +1367,15 @@ class MandarinaListTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: MandarinaAppTheme.primarySoftColor.withValues(alpha: 0.7),//iconBgColor ?? MandarinaColors.iconBgLight,
+                color: MandarinaAppTheme.primarySoftColor.withValues(
+                  alpha: 0.7,
+                ), //iconBgColor ?? MandarinaColors.iconBgLight,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: MandarinaAppTheme.primaryOrangeColor,//iconColor ?? MandarinaColors.iconColorWarm,
+                color: MandarinaAppTheme
+                    .primaryOrangeColor, //iconColor ?? MandarinaColors.iconColorWarm,
                 size: 22,
               ),
             ),
@@ -1202,7 +1389,8 @@ class MandarinaListTile extends StatelessWidget {
                     style: GoogleFonts.quicksand(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: MandarinaAppTheme.blueBisColor,//MandarinaColors.textPrimary,
+                      color: MandarinaAppTheme
+                          .blueBisColor, //MandarinaColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -1210,7 +1398,8 @@ class MandarinaListTile extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.quicksand(
                       fontSize: 12.5,
-                      color: MandarinaAppTheme.blueColor,//MandarinaColors.textSecondary,
+                      color: MandarinaAppTheme
+                          .blueColor, //MandarinaColors.textSecondary,
                     ),
                   ),
                 ],
@@ -1220,7 +1409,8 @@ class MandarinaListTile extends StatelessWidget {
             trailing ??
                 const FaIcon(
                   FontAwesomeIcons.chevronRight,
-                  color: MandarinaAppTheme.blueColor,//MandarinaColors.textSecondary,
+                  color: MandarinaAppTheme
+                      .blueColor, //MandarinaColors.textSecondary,
                   size: 12,
                 ),
           ],
@@ -1257,12 +1447,15 @@ class MandarinaSwitchTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: MandarinaAppTheme.primarySoftColor.withValues(alpha: 0.7),//value ? MandarinaColors.orangeLight : MandarinaColors.iconBgLight,
+              color: MandarinaAppTheme.primarySoftColor.withValues(
+                alpha: 0.7,
+              ), //value ? MandarinaColors.orangeLight : MandarinaColors.iconBgLight,
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: MandarinaAppTheme.primaryOrangeColor,//value ? MandarinaColors.orangeAccent : MandarinaColors.iconColorWarm,
+              color: MandarinaAppTheme
+                  .primaryOrangeColor, //value ? MandarinaColors.orangeAccent : MandarinaColors.iconColorWarm,
               size: 22,
             ),
           ),
@@ -1276,7 +1469,8 @@ class MandarinaSwitchTile extends StatelessWidget {
                   style: GoogleFonts.quicksand(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: MandarinaAppTheme.blueBisColor,//MandarinaColors.textPrimary,
+                    color: MandarinaAppTheme
+                        .blueBisColor, //MandarinaColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -1296,14 +1490,23 @@ class MandarinaSwitchTile extends StatelessWidget {
             value: value,
             //activeColor: MandarinaColors.orangeAccent,
             activeThumbColor: MandarinaAppTheme.primaryOrangeColor,
-            activeTrackColor: MandarinaAppTheme.primarySoftColor.withValues(alpha:0.8),//MandarinaColors.orangeLight,
-            inactiveThumbColor: MandarinaAppTheme.blueColor,//MandarinaColors.textSecondary.withOpacity(0.8),
-            inactiveTrackColor: MandarinaAppTheme.blueColor.withValues(alpha:0.05),
-            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+            activeTrackColor: MandarinaAppTheme.primarySoftColor.withValues(
+              alpha: 0.8,
+            ), //MandarinaColors.orangeLight,
+            inactiveThumbColor: MandarinaAppTheme
+                .blueColor, //MandarinaColors.textSecondary.withOpacity(0.8),
+            inactiveTrackColor: MandarinaAppTheme.blueColor.withValues(
+              alpha: 0.05,
+            ),
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((
+              Set<WidgetState> states,
+            ) {
               if (states.contains(WidgetState.selected)) {
-                return MandarinaAppTheme.primaryOrangeColor.withValues(alpha:0.1);//MandarinaColors.orangeAccent.withOpacity(0.2);
+                return MandarinaAppTheme.primaryOrangeColor.withValues(
+                  alpha: 0.1,
+                ); //MandarinaColors.orangeAccent.withOpacity(0.2);
               }
-              return MandarinaAppTheme.blueColor.withValues(alpha:0.1);
+              return MandarinaAppTheme.blueColor.withValues(alpha: 0.1);
             }),
             onChanged: onChanged,
           ),
@@ -1321,11 +1524,7 @@ class MandarinaDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.0),
-      child: Divider(
-        color: MandarinaColors.divider,
-        height: 1,
-        thickness: 1,
-      ),
+      child: Divider(color: MandarinaColors.divider, height: 1, thickness: 1),
     );
   }
 }
@@ -1361,7 +1560,10 @@ class BatteryIndicator extends StatelessWidget {
             width: 20,
             height: 11,
             decoration: BoxDecoration(
-              border: Border.all(color: batteryColor.withOpacity(0.8), width: 1.5),
+              border: Border.all(
+                color: batteryColor.withOpacity(0.8),
+                width: 1.5,
+              ),
               borderRadius: BorderRadius.circular(3),
             ),
             child: Stack(

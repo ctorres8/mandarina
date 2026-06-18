@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/viewmodel/providers.dart';
 import 'package:mandarina/presentation/viewmodel/state/workflow_state.dart';
-import 'package:mandarina/providers/phrases_provider.dart';
+import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 /// Pantalla Modo Freelancer para la aplicación Mandarina.
