@@ -276,11 +276,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ? pomoState.focusedTime.clamp(0.0, pomoState.initialFocusedTime)
               : pomoState.focusedTime.clamp(sliderMin, sliderMax));
 
-    final String lottieAsset = isSport
-        ? (sportState.isWorkInterval
-              ? 'assets/lotties/gym_boy1.json'
-              : 'assets/lotties/leisure_boy1.json')
-        : 'assets/lotties/studying5.json';
+    final String normalizedTaskTitle = pomoState.currentTask.title
+        .trim()
+        .toLowerCase();
+    String lottieAsset = 'assets/lotties/mandarina_loading.json';
+
+    if (normalizedTaskTitle == 'estudio' ||
+        normalizedTaskTitle == 'estudiar' ||
+        normalizedTaskTitle == 'estudiando') {
+      lottieAsset = 'assets/lotties/studying.json';
+    } else if (normalizedTaskTitle == 'trabajo' ||
+        normalizedTaskTitle == 'trabajar' ||
+        normalizedTaskTitle == 'trabajando') {
+      lottieAsset = 'assets/lotties/freelancer_working.json';
+    } else if (normalizedTaskTitle == 'deporte') {
+      lottieAsset = isSport
+          ? (sportState.isWorkInterval
+                ? 'assets/lotties/gym_boy1.json'
+                : 'assets/lotties/leisure_girl1.json')
+          : 'assets/lotties/gym_boy1.json';
+    } else if (normalizedTaskTitle == 'descanso' ||
+        normalizedTaskTitle == 'descansar' ||
+        normalizedTaskTitle == 'descansando') {
+      lottieAsset = 'assets/lotties/leisure_girl1.json';
+    } else if (normalizedTaskTitle == 'ocio') {
+      lottieAsset = 'assets/lotties/leisure_girl1.json';
+    }
 
     return SizedBox(
       //Timer
@@ -348,11 +369,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     pomoNotifier.setTime(x);
                   },
             innerWidget: (double newValue) {
+              final bool isRunning = isSport
+                  ? sportState.isTimerRunning
+                  : pomoState.isRunning;
+
               return Center(
                 child: SizedBox(
-                  width: 160,
-                  height: 160,
-                  child: Lottie.asset(lottieAsset),
+                  width: 150,
+                  height: 150,
+                  child: Lottie.asset(
+                    lottieAsset,
+                    repeat: true,
+                    animate: isRunning,
+                  ),
                 ),
               );
             },
@@ -406,7 +435,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         icon: isWorkInterval
                             ? Icons.directions_run_rounded
                             : Icons.airline_seat_recline_extra_rounded,
-                        value: isWorkInterval ? 'Trabajo' : 'Descanso',
+                        value: isWorkInterval ? 'Deporte' : 'Descanso',
                       );
                     }
                     return _statItem(
