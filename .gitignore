@@ -5,6 +5,7 @@ mandarina/build/
 mandarina/.pub-cache/
 mandarina/.env
 mandarina/.vscode/
+mandarina/android/app/google-services.json
 
 # --- Android Build Cache (Mandarina) ---
 mandarina/android/app/build/
