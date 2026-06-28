@@ -4,6 +4,12 @@ mandarina/.packages
 mandarina/build/
 mandarina/.pub-cache/
 mandarina/.env
+mandarina/.vscode/
+
+# --- Android Build Cache (Mandarina) ---
+mandarina/android/app/build/
+mandarina/android/.gradle/
+*.log
 
 # --- Firmware (ESP32/PlatformIO/Arduino) ---
 firmware/.pio/

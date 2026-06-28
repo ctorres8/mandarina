@@ -1,209 +1,270 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/screens/auth/forgot_password_screen.dart';
-import 'package:mandarina/presentation/screens/home_screen.dart';
-import 'package:mandarina/presentation/screens/landing_screen.dart';
+import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
   static const name = 'login_screen';
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
 
   final _formKey = GlobalKey<FormState>();
-  bool obscText = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    //final colors = Theme.of(context).colorScheme;
-    //final textStyles = Theme.of(context).textTheme;
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
 
-    @override
-    void dispose(){
-      _emailController.dispose();
-      _passwordController.dispose();
-
-      super.dispose();
-    }
-
-    return Scaffold(
-      backgroundColor: MandarinaAppTheme.primaryColor,//colors.primary,
-      appBar: AppBar(
-        leading: IconButton( 
-          onPressed: ()=> context.pop(), 
-          icon: const Icon(Icons.arrow_back)),
-        iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '¡Hola de nuevo!',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 35,
-                  color: MandarinaAppTheme.whiteColor, //colors.onPrimary,
-                  fontWeight: FontWeight.w600
-                ),
-              ),
-              Text(
-                'Estamos contentos de verte otra vez.',
-                style: TextStyle(
-                  fontSize: 18,
-                  color:MandarinaAppTheme.whiteColor,//colors.onPrimary
-                ),
-              ),
-              
-              const SizedBox(height: 40,),
-              Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                      //const SizedBox(height: 10,),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      cursorColor: MandarinaAppTheme.accentColor,//colors.tertiary,
-                      style: TextStyle(
-                        color: MandarinaAppTheme.accentColor,//colors.tertiary,
-                        fontWeight: FontWeight.w700
-                      ),
-                      //style: GoogleFonts.openSans(color:MandarinaAppTheme.fontBlueColor,),
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                      ),
-                      validator: (value){
-                        if (value==null || value.isEmpty){
-                          return 'Por favor ingrese un email válido.';
-                        }
-                        return null;
-                      },
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: MandarinaAppTheme.primaryColor,
+          appBar: AppBar(
+            leading: IconButton(
+              onPressed: () => context.pop(),
+              icon: const Icon(Icons.arrow_back),
+            ),
+            iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '¡Hola de nuevo!',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 35,
+                      color: MandarinaAppTheme.whiteColor,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(height: 20,),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: !_isPasswordVisible,
-                      autocorrect: false,
-                      cursorColor: MandarinaAppTheme.accentColor,//colors.tertiary,
-                      style: TextStyle(
-                        color: MandarinaAppTheme.accentColor,//colors.tertiary,
-                        fontWeight: FontWeight.w700
-                      ),
-                      decoration:InputDecoration(
-                        border: const OutlineInputBorder(),
-                        hintText: 'Contraseña',
-                        suffixIcon: IconButton(
-                          onPressed: (){
-                            setState(() {
-                              _isPasswordVisible= !_isPasswordVisible;
-                            });
-                          }, 
-                          icon: Icon(
-                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-                            color: MandarinaAppTheme.accentColor,//colors.tertiary,
+                  ),
+                  Text(
+                    'Estamos contentos de verte otra vez.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: MandarinaAppTheme.whiteColor,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 40),
+                  Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          cursorColor: MandarinaAppTheme.accentColor,
+                          style: const TextStyle(
+                            color: MandarinaAppTheme.accentColor,
+                            fontWeight: FontWeight.w700,
                           ),
+                          decoration: const InputDecoration(
+                            hintText: 'Email',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Por favor ingrese un email válido.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: !_isPasswordVisible,
+                          autocorrect: false,
+                          cursorColor: MandarinaAppTheme.accentColor,
+                          style: const TextStyle(
+                            color: MandarinaAppTheme.accentColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            hintText: 'Contraseña',
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                              icon: Icon(
+                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                color: MandarinaAppTheme.accentColor,
+                              ),
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Por favor, ingrese una contraseña.';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: isLoading
+                          ? null
+                          : () {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              context.pushNamed(ForgotPasswordScreen.name);
+                            },
+                      child: const Text(
+                        'Olvidé mi contraseña',
+                        style: TextStyle(
+                          color: MandarinaAppTheme.blueColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                      validator: (value){
-                        if (value==null || value.isEmpty){
-                          return 'Por favor, ingrese una contraseña.';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10,),
-              
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: (){
-                    //dispose();
-                    FocusManager.instance.primaryFocus?.unfocus();
-                    context.pushNamed(ForgotPasswordScreen.name);
-                  },
-                  child: Text(
-                    'Olvidé mi contraseña',
-                    style: TextStyle(
-                      color: MandarinaAppTheme.blueColor,//colors.onSurface
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,                      
                     ),
                   ),
-                ),
-              ),
-              
-              const SizedBox(height: 20,),
+                  
+                  const SizedBox(height: 20),
 
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  elevation: 0.5,
-                  backgroundColor: MandarinaAppTheme.secondaryColor,//colors.tertiary,
-                  foregroundColor: MandarinaAppTheme.accentColor,//colors.onTertiary,
-                  minimumSize: const Size(double.infinity, 60), 
-                  padding: EdgeInsets.zero, 
-                ),
-                onPressed: (){}, // TODO: Ingresar al Home
-                child: const Text(
-                  'Ingresar',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w700,
-                    height: 1,
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0.5,
+                      backgroundColor: MandarinaAppTheme.secondaryColor,
+                      foregroundColor: MandarinaAppTheme.accentColor,
+                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
+                      disabledForegroundColor: MandarinaAppTheme.accentColor,
+                      minimumSize: const Size(double.infinity, 60),
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              final success = await ref
+                                  .read(authControllerProvider.notifier)
+                                  .signInWithEmail(_emailController.text, _passwordController.text);
+                              if (!success && context.mounted) {
+                                final errorMsg = ref.read(authControllerProvider).errorMessage ?? 'Error de inicio de sesión';
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      errorMsg,
+                                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                    ),
+                                    backgroundColor: MandarinaAppTheme.blueColor,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                    child: const Text(
+                      'Ingresar',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
+                      ),
+                    ),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 15,),
+                  const SizedBox(height: 15),
 
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  elevation: 0.5,
-                  backgroundColor: MandarinaAppTheme.secondaryColor,//colors.tertiary,
-                  foregroundColor: MandarinaAppTheme.accentColor,//colors.onTertiary,
-                  minimumSize: const Size(double.infinity, 60), 
-                  padding: EdgeInsets.zero, 
-                ),
-                onPressed: (){ context.goNamed(HomeScreen.name);}, // TODO: Ingresar con Google
-                child: const Text(
-                  'Ingresar con Google',
-                  style: TextStyle(
-                    fontSize: 25,
-                    fontWeight: FontWeight.w700,
-                    height: 1,
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0.5,
+                      backgroundColor: MandarinaAppTheme.secondaryColor,
+                      foregroundColor: MandarinaAppTheme.accentColor,
+                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
+                      disabledForegroundColor: MandarinaAppTheme.accentColor,
+                      minimumSize: const Size(double.infinity, 60),
+                      padding: EdgeInsets.zero,
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            final success = await ref.read(authControllerProvider.notifier).signInWithGoogle();
+                            if (!success && context.mounted) {
+                              final errorMsg = ref.read(authControllerProvider).errorMessage;
+                              if (errorMsg != null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      errorMsg,
+                                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                    ),
+                                    backgroundColor: MandarinaAppTheme.blueColor,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                    child: const Text(
+                      'Ingresar con Google',
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
+                      ),
+                    ),
                   ),
-                ),
+
+                  const SizedBox(height: 70),
+
+                  Center(child: Image.asset('assets/images/logo_blanco.png', scale: 3)),
+                ],
               ),
-
-              const SizedBox(height: 70,),
-
-              Center(child: Image.asset('assets/images/logo_blanco.png',scale:3,)),
-
-            ],
+            ),
           ),
         ),
-      )
+        if (isLoading)
+          Positioned.fill(
+            child: AbsorbPointer(
+              absorbing: true,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.45),
+                child: Center(
+                  child: Lottie.asset(
+                    'assets/lotties/mandarina_loading.json',
+                    width: 150,
+                    height: 150,
+                    repeat: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

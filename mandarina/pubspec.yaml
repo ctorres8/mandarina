@@ -19,6 +19,11 @@ dependencies:
   flutter_lorem: ^2.0.0
   font_awesome_flutter: ^11.0.0
   image_picker: ^1.2.2
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.1
+  google_sign_in: ^6.2.1
+  cloud_firestore: ^6.3.1
+
 
 dev_dependencies:
   flutter_test:
