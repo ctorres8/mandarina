@@ -1,212 +1,216 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
-import 'package:mandarina/presentation/screens/auth/login_screen.dart';
+import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
   static const name = 'forgot_password';
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false; // Para mostrar el Spinner de carga
-
-  Future<void> _sendResetEmail() async {
-
-    // valido el formulario
-    if (!_formKey.currentState!.validate()) {
-      return; // Si hay error (ej: campo vacío), cortamos la ejecución aquí
-    }
-
-    // Spinner cargando
-    setState(() {
-      _isLoading = true;
-    });
-
-    // Simulo la demora de red (2 segundos)
-    await Future.delayed(const Duration(seconds: 2));
-
-    // Quitamos el estado de carga
-    setState(() {
-      _isLoading = false;
-    });
-
-    // Si el widget sigue "vivo" en pantalla, mostramos el diálogo
-    if (!mounted) return;
-    _showMyDialog();
-  }
 
   @override
-  void dispose(){
+  void dispose() {
     _emailController.dispose();
     super.dispose();
   }
 
+  void _showMyDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          backgroundColor: MandarinaAppTheme.whiteColor,
+          title: Text(
+            '¡Mail enviado!', 
+            textAlign: TextAlign.center,
+            style: GoogleFonts.quicksand(
+              color: MandarinaAppTheme.accentColor,
+              fontSize: 24,
+              fontWeight: FontWeight.bold
+            ),
+          ),
+          content: Text(
+            'Se ha enviado un enlace de restablecimiento a tu correo. Por favor, revisá tu casilla para cambiar la contraseña.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.quicksand(
+              color: MandarinaAppTheme.darkBlueColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w500
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MandarinaAppTheme.primaryColor,
+                foregroundColor: MandarinaAppTheme.whiteColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context); // Cierra el dialog
+                context.pop(); // Vuelve al login
+              },
+              child: Text(
+                'Entendido',
+                style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MandarinaAppTheme.primaryColor,//colors.primary,
-      appBar: AppBar(
-        leading: IconButton( 
-          onPressed: ()=> context.pop(), 
-          icon: const Icon(Icons.arrow_back)),
-        iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Restablecer contraseña',
-                textAlign: TextAlign.left,
-                style: TextStyle(
-                  fontSize: 35,
-                  color: MandarinaAppTheme.whiteColor, //colors.onPrimary,
-                  fontWeight: FontWeight.w600
-                ),
-              ),
-              const SizedBox(height: 15,),
-              Text(
-                'Ingresa tu casilla de email debajo y te envíaremos un correo para restablecer tu contraseña.',
-                style: TextStyle(
-                  fontSize: 15,
-                  color:MandarinaAppTheme.whiteColor,//colors.onPrimary
-                ),
-              ),
+    final authState = ref.watch(authControllerProvider);
+    final isLoading = authState.isLoading;
 
-              const SizedBox(height: 30,),
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: MandarinaAppTheme.primaryColor,
+          appBar: AppBar(
+            leading: IconButton( 
+              onPressed: () => context.pop(), 
+              icon: const Icon(Icons.arrow_back),
+            ),
+            iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Restablecer contraseña',
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 35,
+                      color: MandarinaAppTheme.whiteColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    'Ingresa tu casilla de email debajo y te envíaremos un correo para restablecer tu contraseña.',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: MandarinaAppTheme.whiteColor,
+                    ),
+                  ),
 
-              Form(
-                key: _formKey,
-                child: TextFormField(
+                  const SizedBox(height: 30),
+
+                  Form(
+                    key: _formKey,
+                    child: TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
-                      cursorColor: MandarinaAppTheme.accentColor,//colors.tertiary,
-                      style: TextStyle(
-                        color: MandarinaAppTheme.accentColor,//colors.tertiary,
-                        fontWeight: FontWeight.w700
+                      cursorColor: MandarinaAppTheme.accentColor,
+                      style: const TextStyle(
+                        color: MandarinaAppTheme.accentColor,
+                        fontWeight: FontWeight.w700,
                       ),
-                      //style: GoogleFonts.openSans(color:MandarinaAppTheme.fontBlueColor,),
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Email',
                       ),
-                      validator: (value){
-                        if (value==null || value.isEmpty){
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
                           return 'Por favor ingrese un email válido.';
                         }
                         return null;
                       },
+                    ),
                   ),
-              ),
 
-              const SizedBox(height: 20,),
+                  const SizedBox(height: 20),
 
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  elevation: 0.5,
-                  backgroundColor: MandarinaAppTheme.secondaryColor,
-                  foregroundColor: MandarinaAppTheme.accentColor,
-                  disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
-                  disabledForegroundColor: MandarinaAppTheme.accentColor,
-                  // Definimos el tamaño aquí. El double.infinity lo hace ancho completo.
-                  minimumSize: const Size(double.infinity, 60), 
-                  // Al resetear el padding, el botón usa su lógica interna de centrado
-                  padding: EdgeInsets.zero, 
-                  //shape: RoundedRectangleBorder(
-                  //  borderRadius: BorderRadius.circular(15),
-                  //),
-                ),
-                onPressed: _isLoading ? null : _sendResetEmail,
-                child: _isLoading 
-                  ? const SizedBox(
-                      height: 20, 
-                      width: 20, 
-                      child: CircularProgressIndicator(
-                        color: MandarinaAppTheme.accentColor,
-                        strokeWidth: 2,
-                      ),
-                    ) 
-                  : const Text(
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0.5,
+                      backgroundColor: MandarinaAppTheme.secondaryColor,
+                      foregroundColor: MandarinaAppTheme.accentColor,
+                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
+                      disabledForegroundColor: MandarinaAppTheme.accentColor,
+                      minimumSize: const Size(double.infinity, 60), 
+                      padding: EdgeInsets.zero, 
+                    ),
+                    onPressed: isLoading
+                        ? null
+                        : () async {
+                            if (_formKey.currentState!.validate()) {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                              final success = await ref
+                                  .read(authControllerProvider.notifier)
+                                  .sendPasswordResetEmail(_emailController.text);
+                              if (success && context.mounted) {
+                                _showMyDialog();
+                              } else if (context.mounted) {
+                                final errorMsg = ref.read(authControllerProvider).errorMessage ?? 'Error al enviar correo';
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      errorMsg,
+                                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                    ),
+                                    backgroundColor: MandarinaAppTheme.blueColor,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                    child: const Text(
                       'Enviar correo',
                       style: TextStyle(
-                        fontSize: 25, // Un pelín más chico para que respire mejor
+                        fontSize: 25,
                         fontWeight: FontWeight.w700,
-                        // El height: 1.0 es clave para quitar espacios extra de la fuente Quicksand
                         height: 1.0, 
                       ),
                     ),
-              )
-            ]
+                  ),
+                ],
+              ),
+            ),
           ),
-        )
-      )
+        ),
+        if (isLoading)
+          Positioned.fill(
+            child: AbsorbPointer(
+              absorbing: true,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.45),
+                child: Center(
+                  child: Lottie.asset(
+                    'assets/lotties/mandarina_loading.json',
+                    width: 150,
+                    height: 150,
+                    repeat: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
-
-  void _showMyDialog() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        backgroundColor: MandarinaAppTheme.secondaryColor, // Tu crema de Mandarina
-        title: Column(
-          children: [
-            //Center(child: Image.asset('assets/images/logo_naranja.png',scale:15,)),
-            const Text(
-              '¡Mail enviado!', 
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: MandarinaAppTheme.accentColor,
-                fontSize: 26,
-                fontWeight: FontWeight.w900
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Revisa tu casilla para cambiar la contraseña.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: MandarinaAppTheme.accentColor,
-            fontSize: 15,
-            fontWeight: FontWeight.w800
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Cierra el dialog
-              // Aquí podrías usar context.pop() de GoRouter para volver al login
-            },
-            //style: ElevatedButton.styleFrom(
-            //  backgroundColor: MandarinaAppTheme.accentColor,
-            //),
-            child: const Text(
-              'Cerrar',
-              style: TextStyle(
-                color: MandarinaAppTheme.blueColor,
-                fontSize: 18,
-                fontWeight: FontWeight.w900
-              ),
-            ),
-          ),
-        ],
-      );
-    },
-  );
 }
-}
-
-
