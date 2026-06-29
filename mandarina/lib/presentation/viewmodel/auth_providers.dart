@@ -25,14 +25,11 @@ class AuthState {
     this.isSuccess = false,
   });
 
-  AuthState copyWith({
-    bool? isLoading,
-    String? errorMessage,
-    bool? isSuccess,
-  }) {
+  AuthState copyWith({bool? isLoading, String? errorMessage, bool? isSuccess}) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage, // Resetea el error si no se pasa explícitamente
+      errorMessage:
+          errorMessage, // Resetea el error si no se pasa explícitamente
       isSuccess: isSuccess ?? this.isSuccess,
     );
   }
@@ -55,7 +52,9 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(isSuccess: true);
       return true;
     } catch (e) {
-      state = AuthState(errorMessage: e.toString().replaceAll('Exception: ', ''));
+      state = AuthState(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
       return false;
     }
   }
@@ -70,7 +69,9 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(isSuccess: true);
       return true;
     } catch (e) {
-      state = AuthState(errorMessage: e.toString().replaceAll('Exception: ', ''));
+      state = AuthState(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
       return false;
     }
   }
@@ -91,7 +92,9 @@ class AuthController extends Notifier<AuthState> {
         return false;
       }
     } catch (e) {
-      state = AuthState(errorMessage: e.toString().replaceAll('Exception: ', ''));
+      state = AuthState(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
       return false;
     }
   }
@@ -106,7 +109,9 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(isSuccess: true);
       return true;
     } catch (e) {
-      state = AuthState(errorMessage: e.toString().replaceAll('Exception: ', ''));
+      state = AuthState(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
       return false;
     }
   }
@@ -120,7 +125,9 @@ class AuthController extends Notifier<AuthState> {
       await authService.signOut();
       state = AuthState(isSuccess: true);
     } catch (e) {
-      state = AuthState(errorMessage: e.toString().replaceAll('Exception: ', ''));
+      state = AuthState(
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
     }
   }
 
@@ -131,4 +138,6 @@ class AuthController extends Notifier<AuthState> {
 }
 
 // Provider de nuestro Notifier para la UI
-final authControllerProvider = NotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);

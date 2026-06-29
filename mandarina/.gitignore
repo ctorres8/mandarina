@@ -44,4 +44,4 @@ app.*.map.json
 android/app/build/
 
 # Firebase configuration files (Opcional: si querés que tu json sea privado, si no, déjalo comentado)
-# google-services.json
+google-services.json
