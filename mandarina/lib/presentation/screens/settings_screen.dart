@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
+import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
 
 /// ----------------------------------------------------------------------------
@@ -908,7 +909,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: MandarinaAppTheme
             .backgroundSettingsColor, //primaryOrangeColor.withAlpha(100),
-
+        drawer: const DrawerMenu(currentScreen: 'Ajustes'),
         body: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -933,12 +934,13 @@ class MandarinaSettingsScreen extends StatelessWidget {
               backgroundColor:
                   MandarinaAppTheme.primaryColor, //backgroundSettingsColor,
               surfaceTintColor: Colors.transparent,
-              leading: IconButton(
-                onPressed: () => context.pop(),
-                icon: const FaIcon(
-                  FontAwesomeIcons.chevronLeft,
-                  size: 16,
-                  color: MandarinaAppTheme.whiteColor,
+              leading: Builder(
+                builder: (context) => IconButton(
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  icon: const Icon(
+                    Icons.menu,
+                    color: MandarinaAppTheme.whiteColor,
+                  ),
                 ),
               ),
             ),

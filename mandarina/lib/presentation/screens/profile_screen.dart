@@ -1,26 +1,31 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_lorem/flutter_lorem.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/domain/user_profile_model.dart';
+import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/widgets/numbersWidget.dart';
+import 'package:mandarina/presentation/viewmodel/providers.dart';
+import 'package:mandarina/presentation/viewmodel/state/profile_state.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
   static const String name = "profile_screen";
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late UserProfileModel _profile;
   bool _isEditing = false;
+  bool _isInitialized = false;
 
   // Controllers for text fields
   late TextEditingController _nameController;
@@ -29,10 +34,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // Track social links in a mutable list during editing
   late List<String> _tempSocialLinks;
-  
+
   // Track selected gender during editing
   late String _tempGender;
-  
+
   // Controller for adding a new social link
   late TextEditingController _newSocialLinkController;
 
@@ -44,32 +49,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _profile = UserProfileModel(
-      coverImageUrl: 'https://www.wonderfulpcb.com/wp-content/uploads/2025/10/a857b4017ca84ce9b695693187675c51.jpg',
-      profileImageUrl: 'https://t4.ftcdn.net/jpg/03/76/47/81/360_F_376478182_yPuPo2qi6rYcu9ilwGWR6gQ7QBBC8Isw.jpg',
-      name: 'Paola Argento',
-      profession: 'Ingeniera Electrónica',
-      socialLinks: [
-        'https://linkedin.com/in/paola-argento',
-        'https://instagram.com/paola-argento',
-        'https://paola-argento.dev',
-      ],
-      biography: lorem(paragraphs: 2, words: 60),
-      gender: 'Femenino',
-      completedTasks: 234,
-      focusMinutes: 15392,
-      affinityLevel: 8,
-    );
-    _initControllers();
-  }
-
-  void _initControllers() {
-    _nameController = TextEditingController(text: _profile.name);
-    _professionController = TextEditingController(text: _profile.profession);
-    _biographyController = TextEditingController(text: _profile.biography);
-    _tempSocialLinks = List.from(_profile.socialLinks);
-    _tempGender = _profile.gender;
+    _nameController = TextEditingController();
+    _professionController = TextEditingController();
+    _biographyController = TextEditingController();
     _newSocialLinkController = TextEditingController();
+    _tempSocialLinks = [];
+    _tempGender = '';
   }
 
   void _disposeControllers() {
@@ -87,21 +72,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _cancelEdits() {
     setState(() {
-      _initControllers();
+      _isInitialized = false;
       _isEditing = false;
     });
   }
 
   void _saveEdits() {
+    final name = _nameController.text.trim();
+    final profession = _professionController.text.trim();
+    final biography = _biographyController.text.trim();
+    final gender = _tempGender;
+    final socialLinks = List<String>.from(_tempSocialLinks);
+
+    ref
+        .read(profileProvider.notifier)
+        .updateProfile(
+          name: name,
+          profession: profession,
+          biography: biography,
+          gender: gender,
+          coverImageUrl: _profile.coverImageUrl,
+          profileImageUrl: _profile.profileImageUrl,
+          socialLinks: socialLinks,
+        );
+
     setState(() {
-      _profile = _profile.copyWith(
-        name: _nameController.text.trim(),
-        profession: _professionController.text.trim(),
-        biography: _biographyController.text.trim(),
-        socialLinks: List.from(_tempSocialLinks),
-        gender: _tempGender,
-      );
       _isEditing = false;
+      _isInitialized = false;
     });
   }
 
@@ -126,7 +123,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SnackBar(
           content: Text(
             'Error al seleccionar imagen: $e',
-            style: GoogleFonts.quicksand(fontWeight: FontWeight.w600, color: MandarinaAppTheme.whiteColor),
+            style: GoogleFonts.quicksand(
+              fontWeight: FontWeight.w600,
+              color: MandarinaAppTheme.whiteColor,
+            ),
           ),
           backgroundColor: MandarinaAppTheme.accentColor,
         ),
@@ -200,6 +200,63 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(profileProvider);
+    final profile = profileState.profile;
+
+    ref.listen<ProfileState>(profileProvider, (previous, next) {
+      if (next.errorMessage != null &&
+          next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              next.errorMessage!,
+              style: GoogleFonts.quicksand(
+                fontWeight: FontWeight.w600,
+                color: MandarinaAppTheme.whiteColor,
+              ),
+            ),
+            backgroundColor: MandarinaAppTheme.accentColor,
+          ),
+        );
+      }
+    });
+
+    if (profileState.isLoading || profile == null) {
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomRight,
+            end: Alignment.topLeft,
+            colors: [
+              MandarinaAppTheme.whiteColor,
+              MandarinaAppTheme.secondaryColor,
+            ],
+            stops: [0.8, 1.0],
+          ),
+        ),
+        child: const Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: CircularProgressIndicator(
+              color: MandarinaAppTheme.primaryColor,
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (!_isInitialized) {
+      _profile = profile;
+      _nameController.text = profile.name;
+      _professionController.text = profile.profession;
+      _biographyController.text = profile.biography;
+      _tempSocialLinks = List.from(profile.socialLinks);
+      _tempGender = profile.gender;
+      _isInitialized = true;
+    }
+
+    final activeProfile = _isEditing ? _profile : profile;
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -215,12 +272,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
+        drawer: const DrawerMenu(currentScreen: 'Mi Perfil'),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            onPressed: () => context.pop(),
-            icon: const Icon(CupertinoIcons.arrow_left, color: MandarinaAppTheme.whiteColor),
+          leading: Builder(
+            builder: (context) => IconButton(
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              icon: const Icon(
+                Icons.menu,
+                color: MandarinaAppTheme.whiteColor,
+              ),
+            ),
           ),
           actions: [
             if (!_isEditing)
@@ -230,7 +293,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _isEditing = true;
                   });
                 },
-                icon: const Icon(Icons.edit, color: MandarinaAppTheme.whiteColor),
+                icon: const Icon(
+                  Icons.edit,
+                  color: MandarinaAppTheme.whiteColor,
+                ),
               ),
           ],
         ),
@@ -240,8 +306,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  buildTop(),
-                  buildContent(),
+                  buildTop(activeProfile),
+                  buildContent(activeProfile),
                 ],
               ),
             );
@@ -252,7 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /* TOP Section */
-  Widget buildTop() {
+  Widget buildTop(UserProfileModel activeProfile) {
     final double topPosition = coverHeight - (profileHeight / 2);
     final double bottomPosition = profileHeight / 2;
     return Stack(
@@ -261,36 +327,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Container(
           margin: EdgeInsets.only(bottom: bottomPosition),
-          child: buildCoverImage(),
+          child: buildCoverImage(activeProfile),
         ),
-        Positioned(
-          top: topPosition,
-          child: buildProfileImage(),
-        ),
+        Positioned(top: topPosition, child: buildProfileImage(activeProfile)),
       ],
     );
   }
 
-  Widget buildCoverImage() {
-    final bool isNetwork = _profile.coverImageUrl.startsWith('http') || _profile.coverImageUrl.startsWith('https');
+  Widget buildCoverImage(UserProfileModel activeProfile) {
+    final bool hasCover = activeProfile.coverImageUrl.isNotEmpty;
+    final bool isNetwork =
+        hasCover &&
+        (activeProfile.coverImageUrl.startsWith('http') ||
+            activeProfile.coverImageUrl.startsWith('https'));
+
+    Widget coverWidget;
+    if (!hasCover) {
+      coverWidget = Image.asset(
+        'assets/images/logo_color.png',
+        width: double.infinity,
+        height: coverHeight,
+        fit: BoxFit.cover,
+      );
+    } else if (isNetwork) {
+      coverWidget = CachedNetworkImage(
+        imageUrl: activeProfile.coverImageUrl,
+        width: double.infinity,
+        height: coverHeight,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.5),
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: MandarinaAppTheme.primaryColor,
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => _buildCoverPlaceholder(),
+      );
+    } else {
+      coverWidget = Image.file(
+        File(activeProfile.coverImageUrl),
+        width: double.infinity,
+        height: coverHeight,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildCoverPlaceholder(),
+      );
+    }
 
     return Stack(
       children: [
-        isNetwork
-            ? Image.network(
-                _profile.coverImageUrl,
-                width: double.infinity,
-                height: coverHeight,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildCoverPlaceholder(),
-              )
-            : Image.file(
-                File(_profile.coverImageUrl),
-                width: double.infinity,
-                height: coverHeight,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildCoverPlaceholder(),
-              ),
+        coverWidget,
         if (_isEditing)
           Positioned.fill(
             child: Material(
@@ -301,7 +388,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.camera_alt, color: Colors.white, size: 40),
+                      const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 40,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'Cambiar Portada',
@@ -330,18 +421,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget buildProfileImage() {
-    final bool isNetwork = _profile.profileImageUrl.startsWith('http') || _profile.profileImageUrl.startsWith('https');
-    final ImageProvider imageProvider = isNetwork
-        ? NetworkImage(_profile.profileImageUrl) as ImageProvider
-        : FileImage(File(_profile.profileImageUrl)) as ImageProvider;
+  Widget buildProfileImage(UserProfileModel activeProfile) {
+    final bool hasImage = activeProfile.profileImageUrl.isNotEmpty;
+    final bool isNetwork =
+        hasImage &&
+        (activeProfile.profileImageUrl.startsWith('http') ||
+            activeProfile.profileImageUrl.startsWith('https'));
+
+    final ImageProvider? imageProvider = hasImage
+        ? (isNetwork
+              ? CachedNetworkImageProvider(activeProfile.profileImageUrl)
+                    as ImageProvider
+              : FileImage(File(activeProfile.profileImageUrl)) as ImageProvider)
+        : null;
 
     return Stack(
       children: [
         CircleAvatar(
           radius: profileHeight / 2,
-          backgroundColor: const Color(0xFF7A869A),
+          backgroundColor: MandarinaAppTheme.blueColor,
           backgroundImage: imageProvider,
+          child: imageProvider == null
+              ? Icon(
+                  Icons.person,
+                  size: profileHeight * 0.8,
+                  color: MandarinaAppTheme.whiteColor,
+                )
+              : null,
         ),
         if (_isEditing)
           Positioned.fill(
@@ -358,7 +464,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.camera_alt, color: Colors.white, size: 32),
+                          const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 32,
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             'Cambiar Foto',
@@ -381,7 +491,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /* CONTENT Section */
-  Widget buildContent() {
+  Widget buildContent(UserProfileModel activeProfile) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -398,7 +508,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               decoration: InputDecoration(
                 labelText: 'Nombre',
-                labelStyle: GoogleFonts.quicksand(color: MandarinaAppTheme.blueColor, fontWeight: FontWeight.w600),
+                labelStyle: GoogleFonts.quicksand(
+                  color: MandarinaAppTheme.blueColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -411,46 +524,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               decoration: InputDecoration(
                 labelText: 'Profesión',
-                labelStyle: GoogleFonts.quicksand(color: MandarinaAppTheme.blueColor, fontWeight: FontWeight.w600),
+                labelStyle: GoogleFonts.quicksand(
+                  color: MandarinaAppTheme.blueColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               initialValue: _tempGender,
-              items: [
-                'Femenino',
-                'Masculino',
-                'Transgénero',
-                'No binario',
-                'Género fluido',
-                'Agénero',
-                'Prefiero no especificar',
-              ].map((String val) {
-                return DropdownMenuItem<String>(
-                  value: val,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FaIcon(
-                        _getGenderIcon(val),
-                        color: _getGenderColor(val),
-                        size: 18,
+              items:
+                  [
+                    'Femenino',
+                    'Masculino',
+                    'Transgénero',
+                    'No binario',
+                    'Género fluido',
+                    'Agénero',
+                    'No especificado',
+                  ].map((String val) {
+                    return DropdownMenuItem<String>(
+                      value: val,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FaIcon(
+                            _getGenderIcon(val),
+                            color: _getGenderColor(val),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            val,
+                            style: GoogleFonts.quicksand(
+                              color: MandarinaAppTheme.blueColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Text(
-                        val,
-                        style: GoogleFonts.quicksand(
-                          color: MandarinaAppTheme.blueColor,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
               decoration: InputDecoration(
                 labelText: 'Género',
-                labelStyle: GoogleFonts.quicksand(color: MandarinaAppTheme.blueColor, fontWeight: FontWeight.w600),
+                labelStyle: GoogleFonts.quicksand(
+                  color: MandarinaAppTheme.blueColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               onChanged: (value) {
                 if (value != null) {
@@ -466,7 +586,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  _profile.name,
+                  activeProfile.name,
                   style: GoogleFonts.quicksand(
                     color: MandarinaAppTheme.blueColor,
                     fontSize: 28,
@@ -475,17 +595,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 const SizedBox(width: 8),
                 Tooltip(
-                  message: 'Género: ${_profile.gender}',
+                  message: 'Género: ${activeProfile.gender}',
                   child: FaIcon(
-                    _getGenderIcon(_profile.gender),
-                    color: _getGenderColor(_profile.gender),
+                    _getGenderIcon(activeProfile.gender),
+                    color: _getGenderColor(activeProfile.gender),
                     size: 24,
                   ),
                 ),
               ],
             ),
             Text(
-              _profile.profession,
+              activeProfile.profession,
               style: GoogleFonts.quicksand(
                 color: MandarinaAppTheme.blueColor.withValues(alpha: 0.5),
                 fontSize: 20,
@@ -494,27 +614,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
           const SizedBox(height: 20),
-          
+
           if (_isEditing)
             buildSocialLinksEditSection()
           else
-            buildSocialLinksRow(),
+            buildSocialLinksRow(activeProfile),
 
           const SizedBox(height: 20),
           Divider(color: MandarinaAppTheme.primaryColor.withValues(alpha: 0.1)),
           const SizedBox(height: 20),
-          
+
           // NumbersWidget is strictly Read-Only
           NumbersWidget(
-            completedTasks: _profile.completedTasks,
-            focusMinutes: _profile.focusMinutes,
-            affinityLevel: _profile.affinityLevel,
+            completedTasks: activeProfile.completedTasks,
+            focusMinutes: activeProfile.focusMinutes,
+            affinityLevel: activeProfile.affinityLevel,
           ),
-          
+
           const SizedBox(height: 20),
           Divider(color: MandarinaAppTheme.primaryColor.withValues(alpha: 0.1)),
           const SizedBox(height: 20),
-          
+
           SizedBox(
             width: double.infinity,
             child: Column(
@@ -542,13 +662,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: InputDecoration(
                       hintText: 'Escribe algo sobre ti...',
                       hintStyle: GoogleFonts.quicksand(
-                        color: MandarinaAppTheme.blueColor.withValues(alpha: 0.4),
+                        color: MandarinaAppTheme.blueColor.withValues(
+                          alpha: 0.4,
+                        ),
                       ),
                     ),
                   )
                 else
                   Text(
-                    _profile.biography,
+                    activeProfile.biography,
                     style: GoogleFonts.quicksand(
                       color: MandarinaAppTheme.blueColor,
                       fontSize: 14,
@@ -578,9 +700,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Text(
                       'Cancelar',
-                      style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: GoogleFonts.quicksand(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -598,9 +718,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Text(
                       'Guardar',
-                      style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: GoogleFonts.quicksand(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -612,14 +730,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget buildSocialLinksRow() {
-    if (_profile.socialLinks.isEmpty) {
+  Widget buildSocialLinksRow(UserProfileModel activeProfile) {
+    if (activeProfile.socialLinks.isEmpty) {
       return const SizedBox.shrink();
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
-      children: _profile.socialLinks.map((url) {
+      children: activeProfile.socialLinks.map((url) {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 7.5),
           child: buildSocialIcon(_getSocialIcon(url), url),
@@ -641,7 +759,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SnackBar(
               content: Text(
                 'Enlace: $url',
-                style: GoogleFonts.quicksand(fontWeight: FontWeight.w600, color: MandarinaAppTheme.whiteColor),
+                style: GoogleFonts.quicksand(
+                  fontWeight: FontWeight.w600,
+                  color: MandarinaAppTheme.whiteColor,
+                ),
               ),
               duration: const Duration(seconds: 2),
               backgroundColor: MandarinaAppTheme.blueColor,
@@ -649,11 +770,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           );
         },
         child: Center(
-          child: FaIcon(
-            icon,
-            size: 35,
-            color: MandarinaAppTheme.whiteColor,
-          ),
+          child: FaIcon(icon, size: 35, color: MandarinaAppTheme.whiteColor),
         ),
       ),
     ),
@@ -702,7 +819,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.remove_circle, color: MandarinaAppTheme.accentColor),
+                    icon: const Icon(
+                      Icons.remove_circle,
+                      color: MandarinaAppTheme.accentColor,
+                    ),
                     onPressed: () {
                       setState(() {
                         _tempSocialLinks.removeAt(index);
@@ -747,7 +867,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: MandarinaAppTheme.primaryColor,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15),
                 ),

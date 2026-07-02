@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
+import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 
 /// Pantalla informativa sobre la inspiración, el ecosistema y el futuro de Mandarina.
 ///
@@ -137,12 +138,15 @@ class _AboutScreenState extends State<AboutScreen> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      drawer: const DrawerMenu(currentScreen: 'Sobre Mandarina'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded, color: MandarinaAppTheme.whiteColor,),
+        leading: Builder(
+          builder: (context) => IconButton(
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            icon: const Icon(Icons.menu, color: MandarinaAppTheme.whiteColor,),
+          ),
         ),
       ),
       body: Stack(
