@@ -1,4 +1,5 @@
 class UserProfileModel {
+  final String id;
   final String coverImageUrl;
   final String profileImageUrl;
   final String name;
@@ -11,6 +12,7 @@ class UserProfileModel {
   final int affinityLevel;
 
   const UserProfileModel({
+    required this.id,
     required this.coverImageUrl,
     required this.profileImageUrl,
     required this.name,
@@ -24,6 +26,7 @@ class UserProfileModel {
   });
 
   UserProfileModel copyWith({
+    String? id,
     String? coverImageUrl,
     String? profileImageUrl,
     String? name,
@@ -36,6 +39,7 @@ class UserProfileModel {
     int? affinityLevel,
   }) {
     return UserProfileModel(
+      id: id ?? this.id,
       coverImageUrl: coverImageUrl ?? this.coverImageUrl,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       name: name ?? this.name,
@@ -64,15 +68,16 @@ class UserProfileModel {
     };
   }
 
-  factory UserProfileModel.fromMap(Map<String, dynamic> map) {
+  factory UserProfileModel.fromMap(Map<String, dynamic> map, String id) {
     return UserProfileModel(
+      id: id,
       coverImageUrl: map['coverImageUrl'] as String? ?? '',
       profileImageUrl: map['profileImageUrl'] as String? ?? '',
       name: map['name'] as String? ?? '',
       profession: map['profession'] as String? ?? '',
       socialLinks: List<String>.from(map['socialLinks'] as List? ?? const []),
       biography: map['biography'] as String? ?? '',
-      gender: map['gender'] as String? ?? 'Prefiero no especificar',
+      gender: map['gender'] as String? ?? 'No especificado',
       completedTasks: map['completedTasks'] as int? ?? 0,
       focusMinutes: map['focusMinutes'] as int? ?? 0,
       affinityLevel: map['affinityLevel'] as int? ?? 0,

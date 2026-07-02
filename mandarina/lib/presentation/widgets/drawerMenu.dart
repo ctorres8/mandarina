@@ -1,32 +1,44 @@
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
+import 'package:mandarina/domain/user_profile_model.dart';
 import 'package:mandarina/presentation/screens/about_screen.dart';
+import 'package:mandarina/presentation/screens/home_screen.dart';
 import 'package:mandarina/presentation/screens/workflow_screen.dart';
 import 'package:mandarina/presentation/screens/pet_screen.dart';
 import 'package:mandarina/presentation/screens/profile_screen.dart';
 import 'package:mandarina/presentation/screens/settings_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
+import 'package:mandarina/presentation/viewmodel/providers.dart';
 
 class DrawerMenu extends ConsumerWidget {
-  const DrawerMenu({super.key});
+  final String currentScreen;
+  const DrawerMenu({super.key, this.currentScreen = 'Inicio'});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Escucha el estado de autenticación para obtener el nombre del usuario
+    // Escuchar el perfil actual para sincronizar el nombre y la foto en el Drawer
+    final profileState = ref.watch(profileProvider);
+    final profile = profileState.profile;
+
     final authState = ref.watch(authStateChangesProvider);
     final user = authState.value;
     final displayName =
-        user?.displayName ?? user?.email?.split('@').first ?? 'Username';
+        profile?.name ??
+        user?.displayName ??
+        user?.email?.split('@').first ??
+        'Username';
 
     return Drawer(
       backgroundColor: MandarinaAppTheme.whiteColor,
       width: 230,
       child: Column(
         children: [
-          _buildHeader(displayName),
+          _buildHeader(profile, displayName),
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
@@ -34,44 +46,64 @@ class DrawerMenu extends ConsumerWidget {
                 _buildMenuItem(
                   Icons.home_rounded,
                   'Inicio',
-                  true,
-                  onTap: () => context.pop(),
+                  currentScreen == 'Inicio',
+                  onTap: () {
+                    context.pop();
+                    if (currentScreen != 'Inicio') {
+                      context.goNamed(HomeScreen.name);
+                    }
+                  },
                 ),
                 _buildMenuItem(
                   Icons.person,
                   'Mi Perfil',
-                  false,
+                  currentScreen == 'Mi Perfil',
                   onTap: () {
                     context.pop();
-                    context.pushNamed(ProfileScreen.name);
+                    if (currentScreen != 'Mi Perfil') {
+                      context.goNamed(ProfileScreen.name);
+                    }
                   },
                 ),
-                _buildMenuItem(Icons.bar_chart_rounded, 'Historial', false),
+                _buildMenuItem(
+                  Icons.bar_chart_rounded,
+                  'Historial',
+                  currentScreen == 'Historial',
+                  onTap: () {
+                    context.pop();
+                  },
+                ),
                 _buildMenuItem(
                   Icons.auto_graph,
                   'Workflow',
-                  false,
+                  currentScreen == 'Workflow',
                   onTap: () {
                     context.pop();
-                    context.pushNamed(FreelancerScreen.name);
+                    if (currentScreen != 'Workflow') {
+                      context.goNamed(FreelancerScreen.name);
+                    }
                   },
                 ),
                 _buildMenuItem(
                   Icons.pets,
                   'Mandarina PET',
-                  false,
+                  currentScreen == 'Mandarina PET',
                   onTap: () {
                     context.pop();
-                    context.pushNamed(PetScreen.name);
+                    if (currentScreen != 'Mandarina PET') {
+                      context.goNamed(PetScreen.name);
+                    }
                   },
                 ),
                 _buildMenuItem(
                   Icons.info,
                   'Sobre Mandarina',
-                  false,
+                  currentScreen == 'Sobre Mandarina',
                   onTap: () {
                     context.pop();
-                    context.pushNamed(AboutScreen.name);
+                    if (currentScreen != 'Sobre Mandarina') {
+                      context.goNamed(AboutScreen.name);
+                    }
                   },
                 ),
                 Divider(
@@ -83,10 +115,12 @@ class DrawerMenu extends ConsumerWidget {
                 _buildMenuItem(
                   Icons.settings_outlined,
                   'Ajustes',
-                  false,
+                  currentScreen == 'Ajustes',
                   onTap: () {
                     context.pop();
-                    context.pushNamed(SettingsScreen.name);
+                    if (currentScreen != 'Ajustes') {
+                      context.goNamed(SettingsScreen.name);
+                    }
                   },
                 ),
                 _buildMenuItem(
@@ -94,7 +128,9 @@ class DrawerMenu extends ConsumerWidget {
                   'Cerrar sesión',
                   false,
                   onTap: () {
-                    final authNotifier = ref.read(authControllerProvider.notifier);
+                    final authNotifier = ref.read(
+                      authControllerProvider.notifier,
+                    );
                     context.pop(); // Cierra el drawer primero
                     showDialog(
                       context: context,
@@ -194,7 +230,21 @@ class DrawerMenu extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(String username) {
+  Widget _buildHeader(UserProfileModel? profile, String fallbackName) {
+    final String profileImageUrl = profile?.profileImageUrl ?? '';
+    final bool hasImage = profileImageUrl.isNotEmpty;
+    final bool isNetwork =
+        hasImage &&
+        (profileImageUrl.startsWith('http') ||
+            profileImageUrl.startsWith('https'));
+
+    ImageProvider? imageProvider;
+    if (hasImage) {
+      imageProvider = isNetwork
+          ? CachedNetworkImageProvider(profileImageUrl) as ImageProvider
+          : FileImage(File(profileImageUrl)) as ImageProvider;
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 40, left: 16, bottom: 16),
@@ -203,18 +253,21 @@ class DrawerMenu extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             backgroundColor: MandarinaAppTheme.blueColor,
             radius: 25,
-            child: Icon(
-              Icons.person,
-              size: 25,
-              color: MandarinaAppTheme.whiteColor,
-            ),
+            backgroundImage: imageProvider,
+            child: imageProvider == null
+                ? const Icon(
+                    Icons.person,
+                    size: 25,
+                    color: MandarinaAppTheme.whiteColor,
+                  )
+                : null,
           ),
           const SizedBox(height: 12),
           Text(
-            username,
+            fallbackName,
             style: GoogleFonts.quicksand(
               color: Colors.white,
               fontSize: 22,

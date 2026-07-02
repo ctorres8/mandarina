@@ -52,7 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           elevation: 0,
           backgroundColor: Colors.transparent,
         ),
-        drawer: DrawerMenu(),
+        drawer: const DrawerMenu(currentScreen: 'Inicio'),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(

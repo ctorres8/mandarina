@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
+import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 
 class PetScreen extends StatefulWidget {
   const PetScreen({super.key});
@@ -148,15 +149,18 @@ class _MainPetScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
+      drawer: const DrawerMenu(currentScreen: 'Mandarina PET'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const FaIcon(
-            FontAwesomeIcons.circleChevronLeft, 
-            color: MandarinaAppTheme.primaryColor,
-            size: 30,
+        leading: Builder(
+          builder: (context) => IconButton(
+            onPressed: () => Scaffold.of(context).openDrawer(),
+            icon: const FaIcon(
+              FontAwesomeIcons.bars,
+              color: MandarinaAppTheme.primaryColor,
+              size: 24,
+            ),
           ),
         ),
         title: Text(

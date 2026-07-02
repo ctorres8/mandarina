@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/viewmodel/providers.dart';
+import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/state/workflow_state.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
@@ -304,15 +305,18 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
         backgroundColor: Colors.transparent,
         extendBodyBehindAppBar: true,
         resizeToAvoidBottomInset: false,
+        drawer: const DrawerMenu(currentScreen: 'Workflow'),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            onPressed: () => context.pop(),
-            icon: const FaIcon(
-              FontAwesomeIcons.circleChevronLeft,
-              color: MandarinaAppTheme.whiteColor,
-              size: 30,
+          leading: Builder(
+            builder: (context) => IconButton(
+              onPressed: () => Scaffold.of(context).openDrawer(),
+              icon: const FaIcon(
+                FontAwesomeIcons.bars,
+                color: MandarinaAppTheme.whiteColor,
+                size: 24,
+              ),
             ),
           ),
           title: Text(

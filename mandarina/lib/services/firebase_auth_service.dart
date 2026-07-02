@@ -22,9 +22,6 @@ class FirebaseAuthService {
       // Enviar mail de verificación
       await credential.user?.sendEmailVerification();
 
-      // Cerrar sesión inmediatamente para que no se redirija automáticamente
-      await _auth.signOut();
-
       return credential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);

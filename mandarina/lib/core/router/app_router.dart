@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mandarina/presentation/screens/about_screen.dart';
@@ -12,16 +13,35 @@ import 'package:mandarina/presentation/screens/profile_screen.dart';
 import 'package:mandarina/presentation/screens/settings_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
 
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+  RouterNotifier(this._ref) {
+    _ref.listen(authStateChangesProvider, (previous, next) {
+      notifyListeners();
+    });
+    _ref.listen(showSignupDialogProvider, (previous, next) {
+      notifyListeners();
+    });
+  }
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateChangesProvider);
+  final listenable = ref.watch(routerNotifierProvider);
 
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: listenable,
     redirect: (context, state) {
-      final user = authState.value;
-      final isLoggedIn = user != null &&
-          (user.emailVerified ||
-              user.providerData.any((p) => p.providerId == 'google.com'));
+      final showSignupDialog = ref.read(showSignupDialogProvider);
+      if (showSignupDialog) {
+        return null;
+      }
+      final user = ref.read(authStateChangesProvider).value;
+      final isLoggedIn = user != null;
 
       // Rutas de autenticación / públicas
       final isGoingToLanding = state.matchedLocation == '/';
@@ -41,6 +61,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         }
       } else {
         if (isGoingToAuth) {
+          if (state.matchedLocation == '/signup') {
+            return null; // Permitir que el usuario se quede para interactuar con el diálogo
+          }
           return '/home';
         }
       }
