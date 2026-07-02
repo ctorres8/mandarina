@@ -7,6 +7,11 @@ mandarina/.env
 mandarina/.vscode/
 mandarina/android/app/google-services.json
 
+# Archivos autogenerados por plugins de Flutter (Evita conflictos de Merge)
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugins.cmake
+
 # --- Android Build Cache (Mandarina) ---
 mandarina/android/app/build/
 mandarina/android/.gradle/

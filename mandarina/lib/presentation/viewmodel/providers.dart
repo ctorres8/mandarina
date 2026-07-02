@@ -11,6 +11,8 @@ import 'package:mandarina/presentation/viewmodel/state/sport_state.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/profile_notifier.dart';
 import 'package:mandarina/presentation/viewmodel/state/profile_state.dart';
 
+import 'package:mandarina/core/services/export_service.dart';
+
 final pomoProvider = NotifierProvider<PomoNotifier, PomoState>(
   PomoNotifier.new,
 );
@@ -29,3 +31,6 @@ final localeProvider = NotifierProvider<LocaleNotifier, Locale>(
 final profileProvider = NotifierProvider<ProfileNotifier, ProfileState>(
   ProfileNotifier.new,
 );
+
+final exportServiceProvider = Provider((ref) => ExportService());
+
