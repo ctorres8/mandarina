@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
-import 'package:mandarina/presentation/screens/auth/login_screen.dart';
+import 'package:mandarina/presentation/screens/home_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
@@ -18,7 +18,8 @@ class SignupScreen extends ConsumerStatefulWidget {
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _passwordConfirmController = TextEditingController();
+  final TextEditingController _passwordConfirmController =
+      TextEditingController();
 
   bool _isPasswordVisible = false;
   bool _isPasswordConfirmVisible = false;
@@ -39,7 +40,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: MandarinaAppTheme.whiteColor,
           title: Text(
             '¡Cuenta registrada!',
@@ -51,7 +54,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
           ),
           content: Text(
-            'Te hemos enviado un correo de verificación. Por favor, revisá tu casilla antes de ingresar.',
+            'Te hemos enviado un correo de verificación. Por favor, revisá tu casilla.',
             textAlign: TextAlign.center,
             style: GoogleFonts.quicksand(
               color: MandarinaAppTheme.darkBlueColor,
@@ -70,11 +73,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 ),
               ),
               onPressed: () {
+                ref.read(showSignupDialogProvider.notifier).state = false;
                 Navigator.pop(context); // Cierra el diálogo
-                context.goNamed(LoginScreen.name); // Redirige al Login
+                context.goNamed(HomeScreen.name); // Redirige al Home
               },
               child: Text(
-                'Cerrar',
+                'Aceptar',
                 style: GoogleFonts.quicksand(fontWeight: FontWeight.bold),
               ),
             ),
@@ -137,9 +141,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           cursorColor: MandarinaAppTheme.accentColor,
-                          decoration: const InputDecoration(
-                            hintText: 'Email',
-                          ),
+                          decoration: const InputDecoration(hintText: 'Email'),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Por favor ingrese un email válido.';
@@ -165,7 +167,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 });
                               },
                               icon: Icon(
-                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: MandarinaAppTheme.accentColor,
                               ),
                             ),
@@ -179,7 +183,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         ),
 
                         const SizedBox(height: 20),
-                        
+
                         TextFormField(
                           controller: _passwordConfirmController,
                           obscureText: !_isPasswordConfirmVisible,
@@ -191,11 +195,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             suffixIcon: IconButton(
                               onPressed: () {
                                 setState(() {
-                                  _isPasswordConfirmVisible = !_isPasswordConfirmVisible;
+                                  _isPasswordConfirmVisible =
+                                      !_isPasswordConfirmVisible;
                                 });
                               },
                               icon: Icon(
-                                _isPasswordConfirmVisible ? Icons.visibility : Icons.visibility_off,
+                                _isPasswordConfirmVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: MandarinaAppTheme.accentColor,
                               ),
                             ),
@@ -217,8 +224,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             elevation: 0.5,
                             backgroundColor: MandarinaAppTheme.secondaryColor,
                             foregroundColor: MandarinaAppTheme.accentColor,
-                            disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
-                            disabledForegroundColor: MandarinaAppTheme.accentColor,
+                            disabledBackgroundColor: MandarinaAppTheme
+                                .secondaryColor
+                                .withValues(alpha: 0.8),
+                            disabledForegroundColor:
+                                MandarinaAppTheme.accentColor,
                             minimumSize: const Size(double.infinity, 60),
                             padding: EdgeInsets.zero,
                           ),
@@ -226,7 +236,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               ? null
                               : () async {
                                   if (_formKey.currentState!.validate()) {
-                                    FocusManager.instance.primaryFocus?.unfocus();
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                    // Activar el flag para evitar redirección automática del router
+                                    ref
+                                            .read(
+                                              showSignupDialogProvider.notifier,
+                                            )
+                                            .state =
+                                        true;
+
                                     final success = await ref
                                         .read(authControllerProvider.notifier)
                                         .signUpWithEmail(
@@ -235,17 +254,38 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                         );
                                     if (success && context.mounted) {
                                       _showVerificationDialog();
-                                    } else if (context.mounted) {
-                                      final errorMsg = ref.read(authControllerProvider).errorMessage ?? 'Error de registro';
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            errorMsg,
-                                            style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                    } else {
+                                      // Desactivar el flag si falló la creación de cuenta e.g. error de red
+                                      if (mounted) {
+                                        ref
+                                                .read(
+                                                  showSignupDialogProvider
+                                                      .notifier,
+                                                )
+                                                .state =
+                                            false;
+                                      }
+                                      if (context.mounted) {
+                                        final errorMsg =
+                                            ref
+                                                .read(authControllerProvider)
+                                                .errorMessage ??
+                                            'Error de registro';
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              errorMsg,
+                                              style: GoogleFonts.quicksand(
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            backgroundColor:
+                                                MandarinaAppTheme.blueColor,
                                           ),
-                                          backgroundColor: MandarinaAppTheme.blueColor,
-                                        ),
-                                      );
+                                        );
+                                      }
                                     }
                                   }
                                 },
@@ -266,8 +306,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             elevation: 0.5,
                             backgroundColor: MandarinaAppTheme.secondaryColor,
                             foregroundColor: MandarinaAppTheme.accentColor,
-                            disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
-                            disabledForegroundColor: MandarinaAppTheme.accentColor,
+                            disabledBackgroundColor: MandarinaAppTheme
+                                .secondaryColor
+                                .withValues(alpha: 0.8),
+                            disabledForegroundColor:
+                                MandarinaAppTheme.accentColor,
                             minimumSize: const Size(double.infinity, 60),
                             padding: EdgeInsets.zero,
                           ),
@@ -275,17 +318,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               ? null
                               : () async {
                                   FocusManager.instance.primaryFocus?.unfocus();
-                                  final success = await ref.read(authControllerProvider.notifier).signInWithGoogle();
+                                  final success = await ref
+                                      .read(authControllerProvider.notifier)
+                                      .signInWithGoogle();
                                   if (!success && context.mounted) {
-                                    final errorMsg = ref.read(authControllerProvider).errorMessage;
+                                    final errorMsg = ref
+                                        .read(authControllerProvider)
+                                        .errorMessage;
                                     if (errorMsg != null) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
                                           content: Text(
                                             errorMsg,
-                                            style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                            style: GoogleFonts.quicksand(
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
-                                          backgroundColor: MandarinaAppTheme.blueColor,
+                                          backgroundColor:
+                                              MandarinaAppTheme.blueColor,
                                         ),
                                       );
                                     }
@@ -303,7 +355,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                         const SizedBox(height: 40),
 
-                        Center(child: Image.asset('assets/images/logo_blanco.png', scale: 3)),
+                        Center(
+                          child: Image.asset(
+                            'assets/images/logo_blanco.png',
+                            scale: 3,
+                          ),
+                        ),
                       ],
                     ),
                   ),

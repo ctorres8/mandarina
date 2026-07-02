@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mandarina/services/firebase_auth_service.dart';
 
@@ -11,6 +12,11 @@ final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
 final authStateChangesProvider = StreamProvider<User?>((ref) {
   final authService = ref.watch(firebaseAuthServiceProvider);
   return authService.authStateChanges;
+});
+
+// Provider para controlar si se está mostrando el diálogo de verificación en Signup
+final showSignupDialogProvider = StateProvider<bool>((ref) {
+  return false;
 });
 
 // Clase de estado para manejar la UI de Login/Registro
