@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
@@ -9,6 +8,7 @@ import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/state/workflow_state.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
+import 'package:mandarina/core/services/export_service.dart';
 
 /// Pantalla Modo Freelancer para la aplicación Mandarina.
 /// Refactorizada para usar Riverpod (MVVM) y gestión de estados limpia.
@@ -116,80 +116,62 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final workflowState = ref.watch(workflowProvider);
-            final totalDuration = Duration(
-              seconds: workflowState.tasks.fold<int>(
-                0,
-                (sum, t) => sum + t.durationInSeconds,
-              ),
-            );
+        bool isExporting = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Consumer(
+              builder: (context, ref, child) {
+                final workflowState = ref.watch(workflowProvider);
+                final totalDuration = Duration(
+                  seconds: workflowState.tasks.fold<int>(
+                    0,
+                    (sum, t) => sum + t.durationInSeconds,
+                  ),
+                );
 
-            return MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(viewInsets: EdgeInsets.zero),
-              child: AlertDialog(
-                backgroundColor: MandarinaAppTheme.whiteColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                title: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: MandarinaAppTheme.primaryOrangeColor.withValues(
-                          alpha: 0.1,
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const FaIcon(
-                        FontAwesomeIcons.circleCheck,
-                        color: MandarinaAppTheme.primaryOrangeColor,
-                        size: 48,
-                      ),
+                return MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(viewInsets: EdgeInsets.zero),
+                  child: AlertDialog(
+                    backgroundColor: MandarinaAppTheme.whiteColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Sesión Finalizada',
-                      style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 22,
-                        color: MandarinaAppTheme.blueColor,
-                      ),
-                    ),
-                  ],
-                ),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Tareas completadas durante esta sesión de trabajo:',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.quicksand(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: MandarinaAppTheme.blueColor,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (workflowState.tasks.isEmpty)
+                    title: Column(
+                      children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: MandarinaAppTheme.primaryColor.withValues(
-                              alpha: 0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[200]!),
+                            color: MandarinaAppTheme.primaryOrangeColor
+                                .withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
                           ),
-                          child: Text(
-                            'No registraste subtareas individuales.',
+                          child: const FaIcon(
+                            FontAwesomeIcons.circleCheck,
+                            color: MandarinaAppTheme.primaryOrangeColor,
+                            size: 48,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Sesión Finalizada',
+                          style: GoogleFonts.quicksand(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 22,
+                            color: MandarinaAppTheme.blueColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    content: SizedBox(
+                      width: double.maxFinite,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'Tareas completadas durante esta sesión de trabajo:',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.quicksand(
                               fontWeight: FontWeight.w600,
@@ -197,84 +179,194 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                               color: MandarinaAppTheme.blueColor,
                             ),
                           ),
-                        )
-                      else
-                        Flexible(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 200),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: workflowState.tasks.length,
-                              itemBuilder: (context, index) {
-                                final task = workflowState.tasks[index];
-                                return _EditableTaskRow(task: task, ref: ref);
-                              },
+                          const SizedBox(height: 20),
+                          if (workflowState.tasks.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              decoration: BoxDecoration(
+                                color: MandarinaAppTheme.primaryColor
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: Text(
+                                'No registraste subtareas individuales.',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.quicksand(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  color: MandarinaAppTheme.blueColor,
+                                ),
+                              ),
+                            )
+                          else
+                            Flexible(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxHeight: 200,
+                                ),
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: workflowState.tasks.length,
+                                  itemBuilder: (context, index) {
+                                    final task = workflowState.tasks[index];
+                                    return _EditableTaskRow(
+                                      task: task,
+                                      ref: ref,
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Tiempo Total',
+                                  style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                    color: MandarinaAppTheme.primaryOrangeColor,
+                                  ),
+                                ),
+                                Text(
+                                  _formatDuration(totalDuration),
+                                  style: GoogleFonts.quicksand(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                    color: MandarinaAppTheme.primaryOrangeColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Tiempo Total',
+                        ],
+                      ),
+                    ),
+                    actionsAlignment: MainAxisAlignment.center,
+                    actionsPadding: const EdgeInsets.only(
+                      bottom: 24,
+                      left: 24,
+                      right: 24,
+                    ),
+                    actions: [
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: isExporting
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      isExporting = true;
+                                    });
+                                    try {
+                                      final ExportService exportService = ref
+                                          .read(exportServiceProvider);
+                                      await exportService.exportWorkflowToCSV(
+                                        workflowState.tasks,
+                                        totalTime: _formatDuration(
+                                          totalDuration,
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error al exportar: $e',
+                                              style: GoogleFonts.quicksand(
+                                                fontWeight: FontWeight.w600,
+                                                color: MandarinaAppTheme
+                                                    .whiteColor,
+                                              ),
+                                            ),
+                                            backgroundColor: MandarinaAppTheme
+                                                .primaryOrangeColor,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (context.mounted) {
+                                        setState(() {
+                                          isExporting = false;
+                                        });
+                                      }
+                                    }
+                                  },
+                            icon: isExporting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: MandarinaAppTheme.whiteColor,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const FaIcon(
+                                    FontAwesomeIcons.fileCsv,
+                                    size: 20,
+                                  ),
+                            label: Text(
+                              isExporting
+                                  ? 'Exportando...'
+                                  : 'Exportar Jornada',
                               style: GoogleFonts.quicksand(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
-                                color: MandarinaAppTheme.primaryOrangeColor,
                               ),
                             ),
-                            Text(
-                              _formatDuration(totalDuration),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: MandarinaAppTheme.blueColor,
+                              foregroundColor: MandarinaAppTheme.whiteColor,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: isExporting
+                                ? null
+                                : () {
+                                    Navigator.of(context).pop();
+                                    ref.read(workflowProvider.notifier).reset();
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  MandarinaAppTheme.primaryOrangeColor,
+                              foregroundColor: MandarinaAppTheme.whiteColor,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Cerrar',
                               style: GoogleFonts.quicksand(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
-                                color: MandarinaAppTheme.primaryOrangeColor,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ),
-                actionsAlignment: MainAxisAlignment.center,
-                actionsPadding: const EdgeInsets.only(
-                  bottom: 24,
-                  left: 24,
-                  right: 24,
-                ),
-                actions: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      ref.read(workflowProvider.notifier).reset();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MandarinaAppTheme.primaryOrangeColor,
-                      foregroundColor: MandarinaAppTheme.whiteColor,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Cerrar y Guardar',
-                      style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
