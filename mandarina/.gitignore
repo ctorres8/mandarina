@@ -31,17 +31,23 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Archivos autogenerados por plugins de Flutter (Evita conflictos de Merge)
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugins.cmake
+
 # Symbolication related
 app.*.symbols
 
 # Obfuscation related
 app.*.map.json
 
-# Android Studio and Gradle build artifacts (¡Clave para destrabar el Filename too long!)
+# Android Studio and Gradle build artifacts (Clave para destrabar el Filename too long)
 /android/app/debug
 /android/app/profile
 /android/app/release
 android/app/build/
+
 
 # Firebase configuration files (Opcional: si querés que tu json sea privado, si no, déjalo comentado)
 google-services.json

@@ -12,6 +12,7 @@ mandarina/android/app/google-services.json
 **/generated_plugin_registrant.cc
 **/generated_plugins.cmake
 
+
 # --- Android Build Cache (Mandarina) ---
 mandarina/android/app/build/
 mandarina/android/.gradle/
