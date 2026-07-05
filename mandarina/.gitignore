@@ -31,6 +31,11 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# Archivos autogenerados por plugins de Flutter (Evita conflictos de Merge)
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugins.cmake
+
 # Symbolication related
 app.*.symbols
 

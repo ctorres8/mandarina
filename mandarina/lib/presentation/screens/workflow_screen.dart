@@ -276,6 +276,41 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                                           totalDuration,
                                         ),
                                       );
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: [
+                                                const FaIcon(
+                                                  FontAwesomeIcons
+                                                      .solidCircleCheck,
+                                                  color: MandarinaAppTheme
+                                                      .whiteColor,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  '¡Jornada exportada con éxito!',
+                                                  style: GoogleFonts.quicksand(
+                                                    fontWeight: FontWeight.w800,
+                                                    color: MandarinaAppTheme
+                                                        .whiteColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            backgroundColor: MandarinaAppTheme
+                                                .primaryOrangeColor,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                        );
+                                      }
                                     } catch (e) {
                                       if (context.mounted) {
                                         ScaffoldMessenger.of(
