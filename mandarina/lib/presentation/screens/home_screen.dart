@@ -11,6 +11,9 @@ import 'package:mandarina/presentation/viewmodel/notifiers/sport_notifier.dart';
 import 'package:mandarina/presentation/widgets/tag_selector.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:mandarina/presentation/viewmodel/tutorial_provider.dart';
+import 'package:mandarina/presentation/widgets/tutorial_overlay.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -22,6 +25,22 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final GlobalKey _sliderKey = GlobalKey();
+  final GlobalKey _statsKey = GlobalKey();
+  final GlobalKey _clockKey = GlobalKey();
+  final GlobalKey _playKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        ref.read(tutorialProvider.notifier).checkTutorialStatus(uid);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final PomoState pomoState = ref.watch(pomoProvider);
@@ -29,149 +48,175 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final bool isSport = pomoState.currentTask.title == 'Deporte';
     final sportState = ref.watch(sportProvider);
     final sportNotifier = ref.read(sportProvider.notifier);
+    final tutorialState = ref.watch(tutorialProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.bottomRight,
-          end: Alignment.topLeft,
-          colors: [
-            MandarinaAppTheme.primaryOrangeColor,
-            MandarinaAppTheme.primaryColor,
-
-            //MandarinaAppTheme.primaryOrangeColor,
-          ],
-          stops: const [0.1, 0.7],
-        ),
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent, //MandarinaAppTheme.primaryColor,
-        appBar: AppBar(
-          iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
-          title: Image.asset('assets/images/logo_blanco.png', scale: 18),
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-        ),
-        drawer: const DrawerMenu(currentScreen: 'Inicio'),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10.0,
-              vertical: 16.0,
+    return Stack(
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomRight,
+              end: Alignment.topLeft,
+              colors: [
+                MandarinaAppTheme.primaryOrangeColor,
+                MandarinaAppTheme.primaryColor,
+              ],
+              stops: const [0.1, 0.7],
             ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  // Frase Motivacional flotante/sutil (puramente transparente)
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final phrase = ref.watch(randomPhraseProvider);
-                      if (phrase.isEmpty) return const SizedBox.shrink();
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          left: 24.0,
-                          right: 24.0,
-                          top: 4.0,
-                          bottom: 4.0,
-                        ),
-                        child: Text(
-                          phrase,
-                          textAlign: TextAlign.center,
-                          style: mandarinaTextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: MandarinaAppTheme.whiteColor.withValues(
-                              alpha: 0.75,
+          ),
+          child: Scaffold(
+            backgroundColor: Colors.transparent, //MandarinaAppTheme.primaryColor,
+            appBar: AppBar(
+              iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
+              title: Image.asset('assets/images/logo_blanco.png', scale: 18),
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+            ),
+            drawer: const DrawerMenu(currentScreen: 'Inicio'),
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 16.0,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      // Frase Motivacional flotante/sutil (puramente transparente)
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final phrase = ref.watch(randomPhraseProvider);
+                          if (phrase.isEmpty) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(
+                              left: 24.0,
+                              right: 24.0,
+                              top: 4.0,
+                              bottom: 4.0,
                             ),
+                            child: Text(
+                              phrase,
+                              textAlign: TextAlign.center,
+                              style: mandarinaTextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: MandarinaAppTheme.whiteColor.withValues(
+                                  alpha: 0.75,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const Spacer(flex: 1), // Espaciador flexible
+                      const SizedBox(height: 6),
+                      //Cronometro General
+                      _cronometer(
+                        isSport: isSport,
+                        pomoState: pomoState,
+                        pomoNotifier: pomoNotifier,
+                        sportState: sportState,
+                        sportNotifier: sportNotifier,
+                      ),
+
+                      const Spacer(flex: 1), // Espaciador flexible
+                      const SizedBox(height: 8),
+
+                      _statsRow(),
+
+                      const Spacer(flex: 1), // Espaciador flexible
+                      // Tiempo (texto) envuelto en un FittedBox para que no rompa el ancho total
+                      FittedBox(
+                        key: _clockKey,
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          isSport
+                              ? '${sportState.remainingSeconds}s'
+                              : ref
+                                    .watch(pomoProvider.notifier)
+                                    .formatTime(), //Tiempo en String
+                          style: mandarinaTextStyle(
+                            color: MandarinaAppTheme.whiteBisColor,
+                            fontSize: 100,
+                            fontWeight: FontWeight.w600,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black26,
+                                offset: Offset(0, 1),
+                                blurRadius: 4,
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                  const Spacer(flex: 1), // Espaciador flexible
-                  const SizedBox(height: 6),
-                  //Cronometro General
-                  _cronometer(
-                    isSport: isSport,
-                    pomoState: pomoState,
-                    pomoNotifier: pomoNotifier,
-                    sportState: sportState,
-                    sportNotifier: sportNotifier,
-                  ),
-
-                  const Spacer(flex: 1), // Espaciador flexible
-                  const SizedBox(height: 8),
-
-                  _statsRow(),
-
-                  const Spacer(flex: 1), // Espaciador flexible
-                  // Tiempo (texto) envuelto en un FittedBox para que no rompa el ancho total
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      isSport
-                          ? '${sportState.remainingSeconds}s'
-                          : ref
-                                .watch(pomoProvider.notifier)
-                                .formatTime(), //Tiempo en String
-                      style: mandarinaTextStyle(
-                        color: MandarinaAppTheme.whiteBisColor,
-                        fontSize: 100,
-                        fontWeight: FontWeight.w600,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black26,
-                            offset: Offset(0, 1),
-                            blurRadius: 4,
+                      ),
+                      //const SizedBox(height: 30,),
+                      const Spacer(flex: 1), // Espaciador flexible
+                      
+                      // Play/Stop Button y la leyenda explicativa agrupados con _playKey
+                      Column(
+                        key: _playKey,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _playButton(
+                            isSport: isSport,
+                            pomoNotifier: pomoNotifier,
+                            pomoState: pomoState,
+                            sportNotifier: sportNotifier,
+                            sportState: sportState,
+                          ),
+                          const SizedBox(height: 6),
+                          //Leyenda instructiva para parar el cronometro
+                          AnimatedOpacity(
+                            duration: const Duration(milliseconds: 300),
+                            opacity: (tutorialState.showTutorial && tutorialState.currentStep == 4)
+                                ? 1.0
+                                : (isSport
+                                    ? (sportState.isTimerRunning ? 1.0 : 0.0)
+                                    : (pomoState.isRunning ? 1.0 : 0.0)),
+                            child: Text(
+                              "Mantén presionado 1s para abortar.",
+                              style: GoogleFonts.quicksand(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                                color: MandarinaAppTheme.whiteColor.withValues(
+                                  alpha: 0.8,
+                                ),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  //const SizedBox(height: 30,),
-                  const Spacer(flex: 1), // Espaciador flexible
-                  // Play/Stop Button
-                  _playButton(
-                    isSport: isSport,
-                    pomoNotifier: pomoNotifier,
-                    pomoState: pomoState,
-                    sportNotifier: sportNotifier,
-                    sportState: sportState,
-                  ),
 
-                  // Espacio rigido controlado para el texto explicativo
-                  const SizedBox(height: 6),
-                  //const Spacer(flex: 2,),
-
-                  //Leyenda instructiva para parar el cronometro
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 300),
-                    opacity: isSport
-                        ? (sportState.isTimerRunning ? 1.0 : 0.0)
-                        : (pomoState.isRunning ? 1.0 : 0.0),
-                    child: Text(
-                      "Mantén presionado 1s para abortar.",
-                      style: GoogleFonts.quicksand(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: MandarinaAppTheme.whiteColor.withValues(
-                          alpha: 0.8,
-                        ),
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                      const Spacer(flex: 1),
+                    ],
                   ),
-
-                  const Spacer(flex: 1),
-                ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+        if (tutorialState.showTutorial)
+          TutorialOverlay(
+            step: tutorialState.currentStep,
+            sliderKey: _sliderKey,
+            statsKey: _statsKey,
+            clockKey: _clockKey,
+            playKey: _playKey,
+            onNext: () {
+              ref.read(tutorialProvider.notifier).nextStep();
+            },
+            onComplete: () {
+              final uid = FirebaseAuth.instance.currentUser?.uid;
+              if (uid != null) {
+                ref.read(tutorialProvider.notifier).completeTutorial(uid);
+              }
+            },
+          ),
+      ],
     );
   }
 
@@ -304,6 +349,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     return SizedBox(
+      key: _sliderKey,
       //Timer
       width: 280,
       height: 280,
@@ -412,6 +458,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final bool showSportRoutine = isSport && sportRoutine != null;
 
         return Padding(
+          key: _statsKey,
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
