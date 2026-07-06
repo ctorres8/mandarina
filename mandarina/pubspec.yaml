@@ -27,6 +27,7 @@ dependencies:
   csv: ^8.0.0
   share_plus: ^13.2.0
   path_provider: ^2.1.6
+  shared_preferences: ^2.3.0
 
 
 dev_dependencies:

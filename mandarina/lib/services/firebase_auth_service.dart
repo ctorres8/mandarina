@@ -18,7 +18,7 @@ class FirebaseAuthService {
         email: email.trim(),
         password: password.trim(),
       );
-      
+
       // Enviar mail de verificación
       await credential.user?.sendEmailVerification();
 
@@ -43,7 +43,8 @@ class FirebaseAuthService {
         await _auth.signOut();
         throw FirebaseAuthException(
           code: 'email-not-verified',
-          message: 'Por favor, verifica tu correo electrónico antes de ingresar. Revisa tu casilla.',
+          message:
+              'Por favor, necesitamos que verifiques tu correo electrónico antes de ingresar. Revisa tu casilla.',
         );
       }
 
@@ -63,8 +64,9 @@ class FirebaseAuthService {
         // Cancelado por el usuario
         return null;
       }
-      
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -74,7 +76,9 @@ class FirebaseAuthService {
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw Exception('Ha ocurrido un error inesperado al iniciar sesión con Google.');
+      throw Exception(
+        'Ha ocurrido un error inesperado al iniciar sesión con Google.',
+      );
     }
   }
 
@@ -85,17 +89,16 @@ class FirebaseAuthService {
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw Exception('Ha ocurrido un error inesperado al enviar el correo de recuperación.');
+      throw Exception(
+        'Ha ocurrido un error inesperado al enviar el correo de recuperación.',
+      );
     }
   }
 
   // Cerrar sesión
   Future<void> signOut() async {
     try {
-      await Future.wait([
-        _auth.signOut(),
-        _googleSignIn.signOut(),
-      ]);
+      await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
     } catch (e) {
       throw Exception('Error al cerrar sesión.');
     }
@@ -121,25 +124,31 @@ class FirebaseAuthService {
         message = 'El correo electrónico ya se encuentra registrado.';
         break;
       case 'weak-password':
-        message = 'La contraseña ingresada es demasiado débil. Debe tener al menos 6 caracteres.';
+        message =
+            'La contraseña ingresada es demasiado débil. Debe tener al menos 6 caracteres.';
         break;
       case 'operation-not-allowed':
         message = 'El método de autenticación seleccionado no está habilitado.';
         break;
       case 'invalid-credential':
-        message = 'Las credenciales proporcionadas no son válidas o han expirado.';
+        message =
+            'Las credenciales proporcionadas no son válidas o han expirado.';
         break;
       case 'network-request-failed':
-        message = 'Error de conexión. Por favor, comprueba tu conexión a internet.';
+        message =
+            'Error de conexión. Por favor, comprueba tu conexión a internet.';
         break;
       case 'too-many-requests':
-        message = 'Demasiados intentos fallidos. Inténtalo de nuevo en unos minutos.';
+        message =
+            'Demasiados intentos fallidos. Inténtalo de nuevo en unos minutos.';
         break;
       case 'email-not-verified':
-        message = 'Por favor, verifica tu correo electrónico antes de ingresar. Revisa tu casilla.';
+        message =
+            'Por favor, verifica tu correo electrónico antes de ingresar. Revisa tu casilla.';
         break;
       case 'account-exists-with-different-credential':
-        message = 'Ya existe una cuenta con el mismo correo electrónico pero diferentes credenciales.';
+        message =
+            'Ya existe una cuenta con el mismo correo electrónico pero diferentes credenciales.';
         break;
       default:
         message = e.message ?? 'Ocurrió un error en la autenticación.';
