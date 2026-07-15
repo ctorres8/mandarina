@@ -15,7 +15,10 @@ class UserRepository {
       final docSnapshot = await _firestore.collection('users').doc(userId).get();
 
       if (docSnapshot.exists && docSnapshot.data() != null) {
-        return UserProfileModel.fromMap(docSnapshot.data()!, docSnapshot.id);
+        final profile = UserProfileModel.fromMap(docSnapshot.data()!, docSnapshot.id);
+        if (profile.name.trim().isNotEmpty) {
+          return profile;
+        }
       }
     } catch (e) {
       // Intentar cargar desde la caché local si el servicio no está disponible (ej. offline)
@@ -25,7 +28,10 @@ class UserRepository {
             .doc(userId)
             .get(const GetOptions(source: Source.cache));
         if (cachedDoc.exists && cachedDoc.data() != null) {
-          return UserProfileModel.fromMap(cachedDoc.data()!, cachedDoc.id);
+          final profile = UserProfileModel.fromMap(cachedDoc.data()!, cachedDoc.id);
+          if (profile.name.trim().isNotEmpty) {
+            return profile;
+          }
         }
       } catch (_) {
         // Ignorar fallos de la caché y proceder al fallback por defecto
@@ -42,9 +48,9 @@ class UserRepository {
     }
 
     // Retornar el perfil inicial/defecto de prueba genérico
-    return UserProfileModel(
+    final defaultProfile = UserProfileModel(
       id: userId,
-      coverImageUrl: '',
+      coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
       profileImageUrl: '',
       name: initialName,
       profession: 'Focused Member',
@@ -55,7 +61,17 @@ class UserRepository {
       completedTasks: 0,
       focusMinutes: 0,
       affinityLevel: 1,
+      hasCompletedTutorial: false,
     );
+
+    // Guardar el perfil en Firestore de forma segura para precargar los datos
+    try {
+      await saveProfile(userId, defaultProfile);
+    } catch (_) {
+      // Ignorar errores en caso de no contar con acceso de escritura en ese instante (ej. offline)
+    }
+
+    return defaultProfile;
   }
 
   Stream<UserProfileModel> streamProfile(String userId) {
@@ -63,31 +79,35 @@ class UserRepository {
       docSnapshot,
     ) {
       if (docSnapshot.exists && docSnapshot.data() != null) {
-        return UserProfileModel.fromMap(docSnapshot.data()!, docSnapshot.id);
-      } else {
-        final currentUser = FirebaseAuth.instance.currentUser;
-        String initialName = 'Usuario Mandarina';
-        if (currentUser != null && currentUser.uid == userId) {
-          initialName = currentUser.displayName ??
-              currentUser.email?.split('@').first ??
-              'Usuario Mandarina';
+        final profile = UserProfileModel.fromMap(docSnapshot.data()!, docSnapshot.id);
+        if (profile.name.trim().isNotEmpty) {
+          return profile;
         }
-
-        return UserProfileModel(
-          id: userId,
-          coverImageUrl: '',
-          profileImageUrl: '',
-          name: initialName,
-          profession: 'Focused Member',
-          socialLinks: const [],
-          biography:
-              '¡Bienvenido a Mandarina! Contanos un poco sobre vos, tus proyectos y tus pasiones editando este perfil.',
-          gender: 'No especificado',
-          completedTasks: 0,
-          focusMinutes: 0,
-          affinityLevel: 1,
-        );
       }
+      
+      final currentUser = FirebaseAuth.instance.currentUser;
+      String initialName = 'Usuario Mandarina';
+      if (currentUser != null && currentUser.uid == userId) {
+        initialName = currentUser.displayName ??
+            currentUser.email?.split('@').first ??
+            'Usuario Mandarina';
+      }
+
+      return UserProfileModel(
+        id: userId,
+        coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
+        profileImageUrl: '',
+        name: initialName,
+        profession: 'Focused Member',
+        socialLinks: const [],
+        biography:
+            '¡Bienvenido a Mandarina! Contanos un poco sobre vos, tus proyectos y tus pasiones editando este perfil.',
+        gender: 'No especificado',
+        completedTasks: 0,
+        focusMinutes: 0,
+        affinityLevel: 1,
+        hasCompletedTutorial: false,
+      );
     }).handleError((error) {
       // Retornar perfil genérico local en caso de desconexión u otros errores del stream
       final currentUser = FirebaseAuth.instance.currentUser;
@@ -100,7 +120,7 @@ class UserRepository {
 
       return UserProfileModel(
         id: userId,
-        coverImageUrl: '',
+        coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
         profileImageUrl: '',
         name: initialName,
         profession: 'Focused Member',
@@ -111,6 +131,7 @@ class UserRepository {
         completedTasks: 0,
         focusMinutes: 0,
         affinityLevel: 1,
+        hasCompletedTutorial: false,
       );
     });
   }
