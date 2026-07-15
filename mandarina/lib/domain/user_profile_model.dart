@@ -10,6 +10,7 @@ class UserProfileModel {
   final int completedTasks;
   final int focusMinutes;
   final int affinityLevel;
+  final bool hasCompletedTutorial;
 
   const UserProfileModel({
     required this.id,
@@ -23,6 +24,7 @@ class UserProfileModel {
     required this.completedTasks,
     required this.focusMinutes,
     required this.affinityLevel,
+    this.hasCompletedTutorial = false,
   });
 
   UserProfileModel copyWith({
@@ -37,6 +39,7 @@ class UserProfileModel {
     int? completedTasks,
     int? focusMinutes,
     int? affinityLevel,
+    bool? hasCompletedTutorial,
   }) {
     return UserProfileModel(
       id: id ?? this.id,
@@ -50,6 +53,7 @@ class UserProfileModel {
       completedTasks: completedTasks ?? this.completedTasks,
       focusMinutes: focusMinutes ?? this.focusMinutes,
       affinityLevel: affinityLevel ?? this.affinityLevel,
+      hasCompletedTutorial: hasCompletedTutorial ?? this.hasCompletedTutorial,
     );
   }
 
@@ -65,6 +69,7 @@ class UserProfileModel {
       'completedTasks': completedTasks,
       'focusMinutes': focusMinutes,
       'affinityLevel': affinityLevel,
+      'hasCompletedTutorial': hasCompletedTutorial,
     };
   }
 
@@ -81,6 +86,7 @@ class UserProfileModel {
       completedTasks: map['completedTasks'] as int? ?? 0,
       focusMinutes: map['focusMinutes'] as int? ?? 0,
       affinityLevel: map['affinityLevel'] as int? ?? 0,
+      hasCompletedTutorial: map['hasCompletedTutorial'] as bool? ?? false,
     );
   }
 }

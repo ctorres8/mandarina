@@ -40,7 +40,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
 
       final fallbackProfile = UserProfileModel(
         id: userId,
-        coverImageUrl: '',
+        coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
         profileImageUrl: '',
         name: initialName,
         profession: 'Focused Member',
@@ -51,6 +51,7 @@ class ProfileNotifier extends Notifier<ProfileState> {
         completedTasks: 0,
         focusMinutes: 0,
         affinityLevel: 1,
+        hasCompletedTutorial: false,
       );
       state = ProfileState(
         profile: fallbackProfile,
