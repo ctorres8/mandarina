@@ -99,4 +99,25 @@ class ProfileNotifier extends Notifier<ProfileState> {
       );
     }
   }
+
+  Future<void> updateTimerSound(String timerSound) async {
+    final currentProfile = state.profile;
+    if (currentProfile == null) return;
+
+    final user = ref.read(firebaseAuthServiceProvider).currentUser;
+    final userId = user?.uid ?? currentProfile.id;
+
+    final updatedProfile = currentProfile.copyWith(timerSound: timerSound);
+    state = state.copyWith(profile: updatedProfile);
+
+    try {
+      final repository = ref.read(userRepositoryProvider);
+      await repository.updateTimerSound(userId, timerSound);
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Error al actualizar el sonido en Firestore: ${e.toString()}',
+      );
+    }
+  }
 }
+

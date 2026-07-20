@@ -7,6 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
+import 'package:mandarina/presentation/viewmodel/providers.dart';
+
+const Map<String, String> timerSoundOptions = {
+  'bell_sound': 'Campana Clásica',
+  'success_bip': 'Bip Sutil',
+  'success_treble': 'Triple',
+  'success_victory': 'Victoria',
+};
 
 /// ----------------------------------------------------------------------------
 /// MANDARINA COLOR SYSTEM & THEME DEFINITIONS
@@ -93,6 +101,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileState = ref.watch(profileProvider);
+    final currentTimerSound = profileState.profile?.timerSound ?? 'bell_sound';
+
     // Provide a beautiful Material App context to display it beautifully in the runner
     return Theme(
       data: ThemeData(
@@ -110,6 +121,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           keepScreenOn: _keepScreenOn,
           selectedLanguage: _selectedLanguage,
           firstDayOfWeek: _firstDayOfWeek,
+          timerSound: currentTimerSound,
           petConnected: _petConnected,
           petBatteryLevel: _petBatteryLevel,
           petRgbLightsOn: _petRgbLightsOn,
@@ -119,6 +131,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           petWakeOnMotion: _petWakeOnMotion,
           appVersion: '1.2.0-stable',
           firmwareVersion: '0.9.4-beta (ESP32)',
+          onTimerSoundPressed: () {
+            HapticFeedback.lightImpact();
+            _showTimerSoundSelector(context, currentTimerSound);
+          },
 
           // --- Callbacks (with Haptic Feedback for premium feel) ---
           onManageAllowedAppsPressed: () {
@@ -243,6 +259,111 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  void _showTimerSoundSelector(BuildContext context, String currentSound) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MandarinaAppTheme.whiteColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (modalContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.music_note_rounded,
+                        color: MandarinaAppTheme.primaryOrangeColor,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Sonido de fin de temporizador',
+                        style: mandarinaTextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: MandarinaAppTheme.primaryOrangeColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Selecciona el sonido que se reproducirá al finalizar la sesión:',
+                    style: mandarinaTextStyle(
+                      fontSize: 13,
+                      color: MandarinaAppTheme.blueColor.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...timerSoundOptions.entries.map((entry) {
+                    final isSelected = entry.key == currentSound;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? MandarinaAppTheme.primarySoftColor.withValues(
+                                alpha: 0.5,
+                              )
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? MandarinaAppTheme.primaryColor
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: RadioListTile<String>(
+                        value: entry.key,
+                        groupValue: currentSound,
+                        activeColor: MandarinaAppTheme.accentColor,
+                        title: Text(
+                          entry.value,
+                          style: mandarinaTextStyle(
+                            fontSize: 15,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w600,
+                            color: MandarinaAppTheme.blueColor,
+                          ),
+                        ),
+                        onChanged: (String? val) {
+                          if (val != null) {
+                            HapticFeedback.lightImpact();
+                            setModalState(() {
+                              currentSound = val;
+                            });
+                            ref
+                                .read(profileProvider.notifier)
+                                .updateTimerSound(val);
+                            ref
+                                .read(pomoProvider.notifier)
+                                .playPreviewSound(val);
+                            ref
+                                .read(pomoProvider.notifier)
+                                .preloadTimerSound(val);
+                            Navigator.pop(modalContext);
+                          }
+                        },
+                      ),
+                    );
+                  }),
+                  const SizedBox(height: 12),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showCustomPhrasesDialog(BuildContext context) {
     final textController = TextEditingController();
 
@@ -278,7 +399,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: mandarinaTextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: MandarinaAppTheme.primaryColor,
+                            color: MandarinaAppTheme.primaryOrangeColor,
                           ),
                         ),
                         Container(
@@ -424,8 +545,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                           style: mandarinaTextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
-                                            color:
-                                                MandarinaAppTheme.blueBisColor,
+                                            color: MandarinaAppTheme.blueColor,
                                           ),
                                         ),
                                       ),
@@ -438,7 +558,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                         },
                                         icon: const Icon(
                                           Icons.delete_outline_rounded,
-                                          color: Colors.redAccent,
+                                          color: MandarinaAppTheme.accentColor,
                                           size: 20,
                                         ),
                                         padding: EdgeInsets.zero,
@@ -460,9 +580,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         child: Text(
                           'Cerrar',
                           style: mandarinaTextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: MandarinaAppTheme.blueColor,
+                            color: MandarinaAppTheme.primaryOrangeColor,
                           ),
                         ),
                       ),
@@ -566,7 +686,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: mandarinaTextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: MandarinaAppTheme.blueColor,
+                    color: MandarinaAppTheme.primaryOrangeColor,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -837,6 +957,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
   final bool keepScreenOn;
   final String selectedLanguage;
   final String firstDayOfWeek;
+  final String timerSound;
 
   final bool petConnected;
   final int petBatteryLevel;
@@ -855,6 +976,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
   final ValueChanged<bool>? onKeepScreenOnChanged;
   final VoidCallback? onChangeLanguagePressed;
   final VoidCallback? onFirstDayOfWeekPressed;
+  final VoidCallback? onTimerSoundPressed;
 
   final VoidCallback? onPetConnectionDetailsPressed;
   final ValueChanged<bool>? onPetRgbLightsChanged;
@@ -872,6 +994,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
     required this.keepScreenOn,
     required this.selectedLanguage,
     required this.firstDayOfWeek,
+    this.timerSound = 'bell_sound',
     required this.petConnected,
     required this.petBatteryLevel,
     required this.petRgbLightsOn,
@@ -886,6 +1009,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
     this.onKeepScreenOnChanged,
     this.onChangeLanguagePressed,
     this.onFirstDayOfWeekPressed,
+    this.onTimerSoundPressed,
     this.onPetConnectionDetailsPressed,
     this.onPetRgbLightsChanged,
     this.onPetRgbBrightnessChanged,
@@ -1013,6 +1137,14 @@ class MandarinaSettingsScreen extends StatelessWidget {
                         title: 'Primer día de la semana',
                         subtitle: firstDayOfWeek,
                         onTap: onFirstDayOfWeekPressed,
+                      ),
+                      const MandarinaDivider(),
+                      MandarinaListTile(
+                        icon: Icons.music_note_rounded,
+                        title: 'Sonido de fin de temporizador',
+                        subtitle:
+                            timerSoundOptions[timerSound] ?? 'Campana Clásica',
+                        onTap: onTimerSoundPressed,
                       ),
                     ],
                   ),
@@ -1392,7 +1524,7 @@ class MandarinaListTile extends StatelessWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
                       color: MandarinaAppTheme
-                          .blueBisColor, //MandarinaColors.textPrimary,
+                          .blueColor, //MandarinaColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 3),
