@@ -74,6 +74,31 @@ class UserRepository {
     return defaultProfile;
   }
 
+  Future<void> createUserProfileAfterSignup(String userId, String email) async {
+    final String initialName = email.split('@').first;
+    final defaultProfile = UserProfileModel(
+      id: userId,
+      coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
+      profileImageUrl: '',
+      name: initialName,
+      profession: 'Focused Member',
+      socialLinks: const [],
+      biography:
+          '¡Bienvenido a Mandarina! Contanos un poco sobre vos, tus proyectos y tus pasiones editando este perfil.',
+      gender: 'No especificado',
+      completedTasks: 0,
+      focusMinutes: 0,
+      affinityLevel: 1,
+      hasCompletedTutorial: false,
+    );
+
+    final Map<String, dynamic> data = defaultProfile.toMap();
+    data['acceptedTerms'] = true;
+    data['acceptedTermsAt'] = FieldValue.serverTimestamp();
+
+    await _firestore.collection('users').doc(userId).set(data);
+  }
+
   Stream<UserProfileModel> streamProfile(String userId) {
     return _firestore.collection('users').doc(userId).snapshots().map((
       docSnapshot,

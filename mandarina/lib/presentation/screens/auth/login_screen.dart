@@ -6,6 +6,10 @@ import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mandarina/data/repositories/user_repository.dart';
+import 'package:mandarina/presentation/widgets/tyc_bottomsheet.dart';
+import 'package:mandarina/presentation/screens/home_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -55,20 +59,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Text(
                     '¡Hola de nuevo!',
                     textAlign: TextAlign.left,
-                    style: TextStyle(
+                    style: mandarinaTextStyle(
                       fontSize: 35,
                       color: MandarinaAppTheme.whiteColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   Text(
                     'Estamos contentos de verte otra vez.',
-                    style: TextStyle(
+                    style: mandarinaTextStyle(
                       fontSize: 18,
                       color: MandarinaAppTheme.whiteColor,
+                      letterSpacing: -0.1,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 40),
                   Form(
                     key: _formKey,
@@ -81,13 +87,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           cursorColor: MandarinaAppTheme.accentColor,
-                          style: const TextStyle(
+                          style: mandarinaTextStyle(
                             color: MandarinaAppTheme.accentColor,
                             fontWeight: FontWeight.w700,
                           ),
-                          decoration: const InputDecoration(
-                            hintText: 'Email',
-                          ),
+                          decoration: const InputDecoration(hintText: 'Email'),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
                               return 'Por favor ingrese un email válido.';
@@ -101,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           obscureText: !_isPasswordVisible,
                           autocorrect: false,
                           cursorColor: MandarinaAppTheme.accentColor,
-                          style: const TextStyle(
+                          style: mandarinaTextStyle(
                             color: MandarinaAppTheme.accentColor,
                             fontWeight: FontWeight.w700,
                           ),
@@ -115,7 +119,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 });
                               },
                               icon: Icon(
-                                _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
                                 color: MandarinaAppTheme.accentColor,
                               ),
                             ),
@@ -131,7 +137,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  
+
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -141,26 +147,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               FocusManager.instance.primaryFocus?.unfocus();
                               context.pushNamed(ForgotPasswordScreen.name);
                             },
-                      child: const Text(
+                      child: Text(
                         'Olvidé mi contraseña',
-                        style: TextStyle(
-                          color: MandarinaAppTheme.blueColor,
+                        style: mandarinaTextStyle(
+                          color: MandarinaAppTheme.whiteColor,
                           fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.5,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                          decoration: TextDecoration.underline,
+                          decorationColor: MandarinaAppTheme.whiteColor,
                         ),
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
 
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       elevation: 0.5,
-                      backgroundColor: MandarinaAppTheme.secondaryColor,
-                      foregroundColor: MandarinaAppTheme.accentColor,
-                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
+                      backgroundColor: MandarinaAppTheme.whiteBisColor,
+                      foregroundColor: MandarinaAppTheme.primaryOrangeColor,
+                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor
+                          .withValues(alpha: 0.8),
                       disabledForegroundColor: MandarinaAppTheme.accentColor,
                       minimumSize: const Size(double.infinity, 60),
                       padding: EdgeInsets.zero,
@@ -172,26 +181,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               FocusManager.instance.primaryFocus?.unfocus();
                               final success = await ref
                                   .read(authControllerProvider.notifier)
-                                  .signInWithEmail(_emailController.text, _passwordController.text);
+                                  .signInWithEmail(
+                                    _emailController.text,
+                                    _passwordController.text,
+                                  );
                               if (!success && context.mounted) {
-                                final errorMsg = ref.read(authControllerProvider).errorMessage ?? 'Error de inicio de sesión';
+                                final errorMsg =
+                                    ref
+                                        .read(authControllerProvider)
+                                        .errorMessage ??
+                                    'Error de inicio de sesión';
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       errorMsg,
-                                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                      style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                    backgroundColor: MandarinaAppTheme.blueColor,
+                                    backgroundColor:
+                                        MandarinaAppTheme.blueColor,
                                   ),
                                 );
                               }
                             }
                           },
-                    child: const Text(
+                    child: Text(
                       'Ingresar',
-                      style: TextStyle(
+                      style: mandarinaTextStyle(
                         fontSize: 25,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         height: 1,
                       ),
                     ),
@@ -202,9 +221,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       elevation: 0.5,
-                      backgroundColor: MandarinaAppTheme.secondaryColor,
-                      foregroundColor: MandarinaAppTheme.accentColor,
-                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
+                      backgroundColor: MandarinaAppTheme.whiteBisColor,
+                      foregroundColor: MandarinaAppTheme.primaryOrangeColor,
+                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor
+                          .withValues(alpha: 0.8),
                       disabledForegroundColor: MandarinaAppTheme.accentColor,
                       minimumSize: const Size(double.infinity, 60),
                       padding: EdgeInsets.zero,
@@ -213,27 +233,122 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ? null
                         : () async {
                             FocusManager.instance.primaryFocus?.unfocus();
-                            final success = await ref.read(authControllerProvider.notifier).signInWithGoogle();
-                            if (!success && context.mounted) {
-                              final errorMsg = ref.read(authControllerProvider).errorMessage;
-                              if (errorMsg != null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      errorMsg,
-                                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
-                                    ),
-                                    backgroundColor: MandarinaAppTheme.blueColor,
-                                  ),
+                            ref.read(preventRedirectProvider.notifier).state =
+                                true;
+                            final success = await ref
+                                .read(authControllerProvider.notifier)
+                                .signInWithGoogle();
+                            if (success && context.mounted) {
+                              final user = ref
+                                  .read(firebaseAuthServiceProvider)
+                                  .currentUser;
+                              if (user != null) {
+                                final userRepository = ref.read(
+                                  userRepositoryProvider,
                                 );
+                                final doc = await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(user.uid)
+                                    .get();
+                                final bool hasAccepted =
+                                    doc.exists &&
+                                    (doc.data()?['acceptedTerms'] == true);
+
+                                if (hasAccepted) {
+                                  ref
+                                          .read(
+                                            preventRedirectProvider.notifier,
+                                          )
+                                          .state =
+                                      false;
+                                } else {
+                                  bool accepted = false;
+                                  if (context.mounted) {
+                                    await showTermsBottomSheet(
+                                      context,
+                                      onAccepted: () {
+                                        accepted = true;
+                                      },
+                                    );
+                                  }
+                                  if (accepted) {
+                                    await userRepository
+                                        .createUserProfileAfterSignup(
+                                          user.uid,
+                                          user.email ?? '',
+                                        );
+                                    ref
+                                            .read(
+                                              preventRedirectProvider.notifier,
+                                            )
+                                            .state =
+                                        false;
+                                    if (context.mounted) {
+                                      context.goNamed(HomeScreen.name);
+                                    }
+                                  } else {
+                                    await ref
+                                        .read(authControllerProvider.notifier)
+                                        .signOut();
+                                    ref
+                                            .read(
+                                              preventRedirectProvider.notifier,
+                                            )
+                                            .state =
+                                        false;
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Debes aceptar los Términos y Condiciones para ingresar.',
+                                            style: GoogleFonts.quicksand(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          backgroundColor:
+                                              MandarinaAppTheme.blueColor,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
+                              } else {
+                                ref
+                                        .read(preventRedirectProvider.notifier)
+                                        .state =
+                                    false;
+                              }
+                            } else {
+                              ref.read(preventRedirectProvider.notifier).state =
+                                  false;
+                              if (context.mounted) {
+                                final errorMsg = ref
+                                    .read(authControllerProvider)
+                                    .errorMessage;
+                                if (errorMsg != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        errorMsg,
+                                        style: GoogleFonts.quicksand(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      backgroundColor:
+                                          MandarinaAppTheme.blueColor,
+                                    ),
+                                  );
+                                }
                               }
                             }
                           },
-                    child: const Text(
+                    child: Text(
                       'Ingresar con Google',
-                      style: TextStyle(
+                      style: mandarinaTextStyle(
                         fontSize: 25,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         height: 1,
                       ),
                     ),
@@ -241,7 +356,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                   const SizedBox(height: 70),
 
-                  Center(child: Image.asset('assets/images/logo_blanco.png', scale: 3)),
+                  Center(
+                    child: Image.asset(
+                      'assets/images/logo_blanco.png',
+                      scale: 4,
+                    ),
+                  ),
                 ],
               ),
             ),

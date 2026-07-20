@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/screens/home_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
+import 'package:mandarina/presentation/widgets/tyc_bottomsheet.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -23,15 +25,39 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   bool _isPasswordVisible = false;
   bool _isPasswordConfirmVisible = false;
+  bool _termsAccepted = false;
+
+  late TapGestureRecognizer _termsRecognizer;
+  late TapGestureRecognizer _privacyRecognizer;
 
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _termsRecognizer = TapGestureRecognizer()..onTap = _showTermsBottomSheet;
+    _privacyRecognizer = TapGestureRecognizer()..onTap = _showTermsBottomSheet;
+  }
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     _passwordConfirmController.dispose();
+    _termsRecognizer.dispose();
+    _privacyRecognizer.dispose();
     super.dispose();
+  }
+
+  void _showTermsBottomSheet() {
+    showTermsBottomSheet(
+      context,
+      onAccepted: () {
+        setState(() {
+          _termsAccepted = true;
+        });
+      },
+    );
   }
 
   void _showVerificationDialog() {
@@ -114,21 +140,23 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   Text(
                     '¡Bienvenido/a!',
                     textAlign: TextAlign.left,
-                    style: TextStyle(
+                    style: mandarinaTextStyle(
                       fontSize: 35,
                       color: MandarinaAppTheme.whiteColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   Text(
                     'Te pedimos un mail para registrarte.',
-                    style: TextStyle(
+                    style: mandarinaTextStyle(
                       fontSize: 18,
                       color: MandarinaAppTheme.whiteColor,
+                      letterSpacing: -0.1,
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 30),
 
                   Form(
                     key: _formKey,
@@ -217,22 +245,85 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           },
                         ),
 
+                        const SizedBox(height: 20),
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: Checkbox(
+                                value: _termsAccepted,
+                                activeColor: MandarinaAppTheme.whiteBisColor,
+                                checkColor: MandarinaAppTheme.blueColor,
+                                side: const BorderSide(
+                                  color: MandarinaAppTheme.whiteColor,
+                                  width: 2,
+                                ),
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    _termsAccepted = value ?? false;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: RichText(
+                                text: TextSpan(
+                                  style: GoogleFonts.quicksand(
+                                    color: MandarinaAppTheme.whiteColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    height: 1.3,
+                                  ),
+                                  children: [
+                                    const TextSpan(text: 'Acepto los '),
+                                    TextSpan(
+                                      text: 'Términos y Condiciones',
+                                      recognizer: _termsRecognizer,
+                                      style: mandarinaTextStyle(
+                                        color: MandarinaAppTheme.secondaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' y la '),
+                                    TextSpan(
+                                      text: 'Política de Privacidad',
+                                      recognizer: _privacyRecognizer,
+                                      style: GoogleFonts.quicksand(
+                                        color: MandarinaAppTheme.secondaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                    const TextSpan(text: ' de Mandarina.'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
                         const SizedBox(height: 30),
 
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             elevation: 0.5,
-                            backgroundColor: MandarinaAppTheme.secondaryColor,
-                            foregroundColor: MandarinaAppTheme.accentColor,
+                            backgroundColor: MandarinaAppTheme.whiteBisColor,
+                            foregroundColor:
+                                MandarinaAppTheme.primaryOrangeColor,
                             disabledBackgroundColor: MandarinaAppTheme
                                 .secondaryColor
-                                .withValues(alpha: 0.8),
+                                .withValues(alpha: 0.4),
                             disabledForegroundColor:
-                                MandarinaAppTheme.accentColor,
+                                MandarinaAppTheme.primaryOrangeColor,
                             minimumSize: const Size(double.infinity, 60),
                             padding: EdgeInsets.zero,
                           ),
-                          onPressed: isLoading
+                          onPressed: (isLoading || !_termsAccepted)
                               ? null
                               : () async {
                                   if (_formKey.currentState!.validate()) {
@@ -289,11 +380,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                     }
                                   }
                                 },
-                          child: const Text(
+                          child: Text(
                             'Registrarse',
-                            style: TextStyle(
+                            style: mandarinaTextStyle(
                               fontSize: 25,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               height: 1,
                             ),
                           ),
@@ -304,17 +395,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             elevation: 0.5,
-                            backgroundColor: MandarinaAppTheme.secondaryColor,
-                            foregroundColor: MandarinaAppTheme.accentColor,
+                            backgroundColor: MandarinaAppTheme.whiteBisColor,
+                            foregroundColor:
+                                MandarinaAppTheme.primaryOrangeColor,
                             disabledBackgroundColor: MandarinaAppTheme
                                 .secondaryColor
-                                .withValues(alpha: 0.8),
+                                .withValues(alpha: 0.4),
                             disabledForegroundColor:
-                                MandarinaAppTheme.accentColor,
+                                MandarinaAppTheme.primaryOrangeColor,
                             minimumSize: const Size(double.infinity, 60),
                             padding: EdgeInsets.zero,
                           ),
-                          onPressed: isLoading
+                          onPressed: (isLoading || !_termsAccepted)
                               ? null
                               : () async {
                                   FocusManager.instance.primaryFocus?.unfocus();
@@ -343,22 +435,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                     }
                                   }
                                 },
-                          child: const Text(
+                          child: Text(
                             'Ingresar con Google',
-                            style: TextStyle(
+                            style: mandarinaTextStyle(
                               fontSize: 25,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w600,
                               height: 1,
                             ),
                           ),
                         ),
 
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 20),
 
                         Center(
                           child: Image.asset(
                             'assets/images/logo_blanco.png',
-                            scale: 3,
+                            scale: 4,
                           ),
                         ),
                       ],
