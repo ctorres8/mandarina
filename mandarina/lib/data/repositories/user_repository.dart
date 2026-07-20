@@ -160,8 +160,15 @@ class UserRepository {
       );
     });
   }
+
+  Future<void> updateTimerSound(String userId, String timerSound) async {
+    await _firestore.collection('users').doc(userId).set({
+      'timer_sound': timerSound,
+    }, SetOptions(merge: true));
+  }
 }
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository();
 });
+

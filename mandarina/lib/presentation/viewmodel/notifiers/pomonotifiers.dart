@@ -1,20 +1,27 @@
 import 'dart:async';
 
-//import 'package:flutter/cupertino.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/domain/activities.dart';
+import 'package:mandarina/presentation/viewmodel/providers.dart';
 import 'package:mandarina/presentation/viewmodel/state/pomo_state.dart';
 
 
 class PomoNotifier extends Notifier<PomoState>{
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   @override
   PomoState build() {
-    // TODO: implement build
     ref.onDispose(() {
       _timer?.cancel();
       _cancelTimer?.cancel();
       _holdingProgressTimer?.cancel();
-    }); // Limpio el timer al cerrar el notifier (o la app)
+      _audioPlayer.dispose();
+    }); // Limpio el timer y el reproductor al cerrar el notifier (o la app)
+
+    // Precargar la fuente de audio configurada
+    preloadTimerSound();
+
     return PomoState();
   }
 
@@ -22,6 +29,28 @@ class PomoNotifier extends Notifier<PomoState>{
   Timer? _cancelTimer;
   Timer? _holdingProgressTimer;
   bool _justCancelled = false;
+
+  Future<void> playTimerEndSound() async {
+    final timerSound = ref.read(profileProvider).profile?.timerSound ?? 'bell_sound';
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('audio/$timerSound.mp3'));
+    } catch (_) {}
+  }
+
+  Future<void> preloadTimerSound([String? soundName]) async {
+    final timerSound = soundName ?? ref.read(profileProvider).profile?.timerSound ?? 'bell_sound';
+    try {
+      await _audioPlayer.setSource(AssetSource('audio/$timerSound.mp3'));
+    } catch (_) {}
+  }
+
+  Future<void> playPreviewSound(String soundName) async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(AssetSource('audio/$soundName.mp3'));
+    } catch (_) {}
+  }
 
   /*
   void startStopTimer(){
@@ -69,8 +98,7 @@ class PomoNotifier extends Notifier<PomoState>{
           _stopTimer();
           incrementSesionesCompletadas(); // Incrementa sesiones completadas al finalizar con éxito
           resetTimer();
-          //TODO: Hacer una notificación o sonido de "Terminado"
-          //setTimerOnOff(false);
+          playTimerEndSound();
         }
         else{
           state=state.copyWith(focusedTime: state.focusedTime-1); // Decremento el tiempo de focus
@@ -78,6 +106,7 @@ class PomoNotifier extends Notifier<PomoState>{
       }
     );
   }
+
 
 
   void _stopTimer(){
