@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mandarina/services/firebase_auth_service.dart';
+import 'package:mandarina/data/repositories/user_repository.dart';
 
 // Provider para la instancia de FirebaseAuthService
 final firebaseAuthServiceProvider = Provider<FirebaseAuthService>((ref) {
@@ -16,6 +17,11 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 
 // Provider para controlar si se está mostrando el diálogo de verificación en Signup
 final showSignupDialogProvider = StateProvider<bool>((ref) {
+  return false;
+});
+
+// Provider para prevenir la redirección automática del router (ej. durante verificación de TyC en login de Google)
+final preventRedirectProvider = StateProvider<bool>((ref) {
   return false;
 });
 
@@ -71,7 +77,12 @@ class AuthController extends Notifier<AuthState> {
     await Future.delayed(const Duration(seconds: 1));
     try {
       final authService = ref.read(firebaseAuthServiceProvider);
-      await authService.signUpWithEmail(email, password);
+      final userCredential = await authService.signUpWithEmail(email, password);
+      final user = userCredential.user;
+      if (user != null) {
+        final userRepository = ref.read(userRepositoryProvider);
+        await userRepository.createUserProfileAfterSignup(user.uid, email);
+      }
       state = AuthState(isSuccess: true);
       return true;
     } catch (e) {

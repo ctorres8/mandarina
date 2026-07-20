@@ -11,7 +11,8 @@ class ForgotPasswordScreen extends ConsumerStatefulWidget {
   static const name = 'forgot_password';
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
@@ -30,15 +31,17 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           backgroundColor: MandarinaAppTheme.whiteColor,
           title: Text(
-            '¡Mail enviado!', 
+            '¡Mail enviado!',
             textAlign: TextAlign.center,
             style: GoogleFonts.quicksand(
               color: MandarinaAppTheme.accentColor,
               fontSize: 24,
-              fontWeight: FontWeight.bold
+              fontWeight: FontWeight.bold,
             ),
           ),
           content: Text(
@@ -47,7 +50,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             style: GoogleFonts.quicksand(
               color: MandarinaAppTheme.darkBlueColor,
               fontSize: 16,
-              fontWeight: FontWeight.w500
+              fontWeight: FontWeight.w500,
             ),
           ),
           actionsAlignment: MainAxisAlignment.center,
@@ -66,9 +69,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               },
               child: Text(
                 'Entendido',
-                style: GoogleFonts.quicksand(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: GoogleFonts.quicksand(fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -87,8 +88,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         Scaffold(
           backgroundColor: MandarinaAppTheme.primaryColor,
           appBar: AppBar(
-            leading: IconButton( 
-              onPressed: () => context.pop(), 
+            leading: IconButton(
+              onPressed: () => context.pop(),
               icon: const Icon(Icons.arrow_back),
             ),
             iconTheme: const IconThemeData(color: MandarinaAppTheme.whiteColor),
@@ -103,18 +104,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   Text(
                     'Restablecer contraseña',
                     textAlign: TextAlign.left,
-                    style: TextStyle(
+                    style: mandarinaTextStyle(
                       fontSize: 35,
                       color: MandarinaAppTheme.whiteColor,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: -0.2,
                     ),
                   ),
                   const SizedBox(height: 15),
                   Text(
                     'Ingresa tu casilla de email debajo y te envíaremos un correo para restablecer tu contraseña.',
-                    style: TextStyle(
-                      fontSize: 15,
+                    style: mandarinaTextStyle(
+                      fontSize: 16,
                       color: MandarinaAppTheme.whiteColor,
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: -0.1,
                     ),
                   ),
 
@@ -127,13 +131,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       cursorColor: MandarinaAppTheme.accentColor,
-                      style: const TextStyle(
+                      style: mandarinaTextStyle(
                         color: MandarinaAppTheme.accentColor,
                         fontWeight: FontWeight.w700,
                       ),
-                      decoration: const InputDecoration(
-                        hintText: 'Email',
-                      ),
+                      decoration: const InputDecoration(hintText: 'Email'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Por favor ingrese un email válido.';
@@ -148,12 +150,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       elevation: 0.5,
-                      backgroundColor: MandarinaAppTheme.secondaryColor,
-                      foregroundColor: MandarinaAppTheme.accentColor,
-                      disabledBackgroundColor: MandarinaAppTheme.secondaryColor.withValues(alpha: 0.8),
-                      disabledForegroundColor: MandarinaAppTheme.accentColor,
-                      minimumSize: const Size(double.infinity, 60), 
-                      padding: EdgeInsets.zero, 
+                      backgroundColor: MandarinaAppTheme.whiteBisColor,
+                      foregroundColor: MandarinaAppTheme.primaryOrangeColor,
+                      disabledBackgroundColor: MandarinaAppTheme.whiteBisColor
+                          .withValues(alpha: 0.8),
+                      disabledForegroundColor:
+                          MandarinaAppTheme.primaryOrangeColor,
+                      minimumSize: const Size(double.infinity, 60),
+                      padding: EdgeInsets.zero,
                     ),
                     onPressed: isLoading
                         ? null
@@ -162,30 +166,48 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                               FocusManager.instance.primaryFocus?.unfocus();
                               final success = await ref
                                   .read(authControllerProvider.notifier)
-                                  .sendPasswordResetEmail(_emailController.text);
+                                  .sendPasswordResetEmail(
+                                    _emailController.text,
+                                  );
                               if (success && context.mounted) {
                                 _showMyDialog();
                               } else if (context.mounted) {
-                                final errorMsg = ref.read(authControllerProvider).errorMessage ?? 'Error al enviar correo';
+                                final errorMsg =
+                                    ref
+                                        .read(authControllerProvider)
+                                        .errorMessage ??
+                                    'Error al enviar correo';
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
                                       errorMsg,
-                                      style: GoogleFonts.quicksand(fontWeight: FontWeight.w600),
+                                      style: GoogleFonts.quicksand(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                    backgroundColor: MandarinaAppTheme.blueColor,
+                                    backgroundColor:
+                                        MandarinaAppTheme.blueColor,
                                   ),
                                 );
                               }
                             }
                           },
-                    child: const Text(
+                    child: Text(
                       'Enviar correo',
-                      style: TextStyle(
+                      style: mandarinaTextStyle(
                         fontSize: 25,
                         fontWeight: FontWeight.w700,
-                        height: 1.0, 
+                        height: 1.0,
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 150),
+
+                  Center(
+                    child: Image.asset(
+                      'assets/images/logo_blanco.png',
+                      scale: 4,
                     ),
                   ),
                 ],

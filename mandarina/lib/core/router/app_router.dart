@@ -22,6 +22,9 @@ class RouterNotifier extends ChangeNotifier {
     _ref.listen(showSignupDialogProvider, (previous, next) {
       notifyListeners();
     });
+    _ref.listen(preventRedirectProvider, (previous, next) {
+      notifyListeners();
+    });
   }
 }
 
@@ -37,7 +40,8 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: listenable,
     redirect: (context, state) {
       final showSignupDialog = ref.read(showSignupDialogProvider);
-      if (showSignupDialog) {
+      final preventRedirect = ref.read(preventRedirectProvider);
+      if (showSignupDialog || preventRedirect) {
         return null;
       }
       final user = ref.read(authStateChangesProvider).value;
