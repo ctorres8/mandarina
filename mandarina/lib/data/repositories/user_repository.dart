@@ -166,7 +166,14 @@ class UserRepository {
       'timer_sound': timerSound,
     }, SetOptions(merge: true));
   }
+
+  Future<void> updateTimerVolume(String userId, double timerVolume) async {
+    await _firestore.collection('users').doc(userId).set({
+      'timer_volume': timerVolume,
+    }, SetOptions(merge: true));
+  }
 }
+
 
 final userRepositoryProvider = Provider<UserRepository>((ref) {
   return UserRepository();
