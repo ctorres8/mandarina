@@ -12,6 +12,7 @@ class UserProfileModel {
   final int affinityLevel;
   final bool hasCompletedTutorial;
   final String timerSound;
+  final double timerVolume;
 
   const UserProfileModel({
     required this.id,
@@ -27,6 +28,7 @@ class UserProfileModel {
     required this.affinityLevel,
     this.hasCompletedTutorial = false,
     this.timerSound = 'bell_sound',
+    this.timerVolume = 0.8,
   });
 
   UserProfileModel copyWith({
@@ -43,6 +45,7 @@ class UserProfileModel {
     int? affinityLevel,
     bool? hasCompletedTutorial,
     String? timerSound,
+    double? timerVolume,
   }) {
     return UserProfileModel(
       id: id ?? this.id,
@@ -58,6 +61,7 @@ class UserProfileModel {
       affinityLevel: affinityLevel ?? this.affinityLevel,
       hasCompletedTutorial: hasCompletedTutorial ?? this.hasCompletedTutorial,
       timerSound: timerSound ?? this.timerSound,
+      timerVolume: timerVolume ?? this.timerVolume,
     );
   }
 
@@ -75,6 +79,7 @@ class UserProfileModel {
       'affinityLevel': affinityLevel,
       'hasCompletedTutorial': hasCompletedTutorial,
       'timer_sound': timerSound,
+      'timer_volume': timerVolume,
     };
   }
 
@@ -93,7 +98,9 @@ class UserProfileModel {
       affinityLevel: map['affinityLevel'] as int? ?? 0,
       hasCompletedTutorial: map['hasCompletedTutorial'] as bool? ?? false,
       timerSound: map['timer_sound'] as String? ?? 'bell_sound',
+      timerVolume: (map['timer_volume'] as num?)?.toDouble() ?? 0.8,
     );
   }
 }
+
 

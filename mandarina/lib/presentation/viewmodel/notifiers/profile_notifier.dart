@@ -119,5 +119,26 @@ class ProfileNotifier extends Notifier<ProfileState> {
       );
     }
   }
+
+  Future<void> updateTimerVolume(double timerVolume) async {
+    final currentProfile = state.profile;
+    if (currentProfile == null) return;
+
+    final user = ref.read(firebaseAuthServiceProvider).currentUser;
+    final userId = user?.uid ?? currentProfile.id;
+
+    final updatedProfile = currentProfile.copyWith(timerVolume: timerVolume);
+    state = state.copyWith(profile: updatedProfile);
+
+    try {
+      final repository = ref.read(userRepositoryProvider);
+      await repository.updateTimerVolume(userId, timerVolume);
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Error al actualizar el volumen en Firestore: ${e.toString()}',
+      );
+    }
+  }
 }
+
 

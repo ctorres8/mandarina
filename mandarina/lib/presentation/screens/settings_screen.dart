@@ -17,39 +17,6 @@ const Map<String, String> timerSoundOptions = {
 };
 
 /// ----------------------------------------------------------------------------
-/// MANDARINA COLOR SYSTEM & THEME DEFINITIONS
-/// ----------------------------------------------------------------------------
-class MandarinaColors {
-  static const Color background = Color(
-    0xFFFCFAF7,
-  ); // Ultra-warm light grey/white background
-  static const Color cardBg = Colors.white; // Pure white cards for separation
-  static const Color orangeAccent = Color(
-    0xFFFF6B35,
-  ); // Vibrant Mandarina Orange accent
-  static const Color orangeLight = Color(
-    0xFFFFF0EA,
-  ); // Very soft pastel peach for active background elements
-  static const Color textPrimary = Color(
-    0xFF2D2520,
-  ); // Elegant dark charcoal with warm undertones
-  static const Color textSecondary = Color(
-    0xFF8B8178,
-  ); // Soft warm grey for subtitles
-  static const Color divider = Color(
-    0xFFF3ECE6,
-  ); // Delicate divider for list separation
-  static const Color successGreen = Color(
-    0xFF43A047,
-  ); // Pure green for connectivity and battery
-  static const Color shadowColor = Color(
-    0x062D2520,
-  ); // Barely visible dark warm shadow
-  static const Color iconBgLight = Color(
-    0xFFFAF5F0,
-  ); // Beautiful background circle for list icons
-  static const Color iconColorWarm = Color(0xFF6E645C); // Standard icon color
-}
 
 /// Helper method to guarantee the 'Quicksand' typography is always applied.
 /*
@@ -90,6 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _keepScreenOn = false;
   String _selectedLanguage = 'Español (ES)';
   String _firstDayOfWeek = 'Lunes';
+  double? _localTimerVolume;
 
   bool _petConnected = true;
   int _petBatteryLevel = 87;
@@ -103,16 +71,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
     final currentTimerSound = profileState.profile?.timerSound ?? 'bell_sound';
+    final currentTimerVolume =
+        _localTimerVolume ?? profileState.profile?.timerVolume ?? 0.8;
 
     // Provide a beautiful Material App context to display it beautifully in the runner
     return Theme(
       data: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: MandarinaColors.background,
+        scaffoldBackgroundColor: MandarinaAppTheme.backgroundSettingsColor,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: MandarinaColors.orangeAccent,
-          background: MandarinaColors.background,
-          primary: MandarinaColors.orangeAccent,
+          seedColor: MandarinaAppTheme.primaryOrangeColor,
+          surface: MandarinaAppTheme.whiteColor,
+          primary: MandarinaAppTheme.primaryOrangeColor,
         ),
       ),
       child: Scaffold(
@@ -122,6 +92,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           selectedLanguage: _selectedLanguage,
           firstDayOfWeek: _firstDayOfWeek,
           timerSound: currentTimerSound,
+          timerVolume: currentTimerVolume,
           petConnected: _petConnected,
           petBatteryLevel: _petBatteryLevel,
           petRgbLightsOn: _petRgbLightsOn,
@@ -134,6 +105,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           onTimerSoundPressed: () {
             HapticFeedback.lightImpact();
             _showTimerSoundSelector(context, currentTimerSound);
+          },
+          onTimerVolumeChanged: (val) {
+            setState(() {
+              _localTimerVolume = val;
+            });
+          },
+          onTimerVolumeChangeEnd: (val) {
+            setState(() {
+              _localTimerVolume = val;
+            });
+            ref.read(profileProvider.notifier).updateTimerVolume(val);
+            ref
+                .read(pomoProvider.notifier)
+                .playPreviewSound(currentTimerSound, val);
+            ref
+                .read(pomoProvider.notifier)
+                .preloadTimerSound(currentTimerSound, val);
           },
 
           // --- Callbacks (with Haptic Feedback for premium feel) ---
@@ -885,12 +873,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     _buildAboutRow('Versión de App', 'v0.1.0-stable'),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(color: MandarinaColors.divider, height: 1),
+                      child: Divider(
+                        color: MandarinaAppTheme.primarySoftColor,
+                        height: 1,
+                      ),
                     ),
                     _buildAboutRow('Firmware', 'v0.0.0-beta'),
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
-                      child: Divider(color: MandarinaColors.divider, height: 1),
+                      child: Divider(
+                        color: MandarinaAppTheme.primarySoftColor,
+                        height: 1,
+                      ),
                     ),
                     _buildAboutRow('Hardware', 'Revision C'),
                   ],
@@ -958,6 +952,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
   final String selectedLanguage;
   final String firstDayOfWeek;
   final String timerSound;
+  final double timerVolume;
 
   final bool petConnected;
   final int petBatteryLevel;
@@ -977,6 +972,8 @@ class MandarinaSettingsScreen extends StatelessWidget {
   final VoidCallback? onChangeLanguagePressed;
   final VoidCallback? onFirstDayOfWeekPressed;
   final VoidCallback? onTimerSoundPressed;
+  final ValueChanged<double>? onTimerVolumeChanged;
+  final ValueChanged<double>? onTimerVolumeChangeEnd;
 
   final VoidCallback? onPetConnectionDetailsPressed;
   final ValueChanged<bool>? onPetRgbLightsChanged;
@@ -995,6 +992,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
     required this.selectedLanguage,
     required this.firstDayOfWeek,
     this.timerSound = 'bell_sound',
+    this.timerVolume = 0.8,
     required this.petConnected,
     required this.petBatteryLevel,
     required this.petRgbLightsOn,
@@ -1010,6 +1008,8 @@ class MandarinaSettingsScreen extends StatelessWidget {
     this.onChangeLanguagePressed,
     this.onFirstDayOfWeekPressed,
     this.onTimerSoundPressed,
+    this.onTimerVolumeChanged,
+    this.onTimerVolumeChangeEnd,
     this.onPetConnectionDetailsPressed,
     this.onPetRgbLightsChanged,
     this.onPetRgbBrightnessChanged,
@@ -1146,10 +1146,117 @@ class MandarinaSettingsScreen extends StatelessWidget {
                             timerSoundOptions[timerSound] ?? 'Campana Clásica',
                         onTap: onTimerSoundPressed,
                       ),
+                      const MandarinaDivider(),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 20.0,
+                              right: 20.0,
+                              top: 16.0,
+                              bottom: 4.0,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: MandarinaAppTheme
+                                            .primarySoftColor
+                                            .withValues(alpha: 0.7),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.volume_up_rounded,
+                                        color: MandarinaAppTheme
+                                            .primaryOrangeColor,
+                                        size: 22,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Text(
+                                      'Volumen de Alarma',
+                                      style: GoogleFonts.quicksand(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        color: MandarinaAppTheme.blueColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  '${(timerVolume * 100).round()}%',
+                                  style: mandarinaTextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: MandarinaAppTheme.primaryOrangeColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 68.0,
+                              right: 24.0,
+                              bottom: 16.0,
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.volume_down_rounded,
+                                  size: 16,
+                                  color: MandarinaAppTheme.blueColor,
+                                ),
+                                Expanded(
+                                  child: SliderTheme(
+                                    data: SliderThemeData(
+                                      trackHeight: 4,
+                                      activeTrackColor:
+                                          MandarinaAppTheme.primaryOrangeColor,
+                                      inactiveTrackColor: MandarinaAppTheme
+                                          .primaryOrangeColor
+                                          .withValues(alpha: 0.2),
+                                      thumbColor:
+                                          MandarinaAppTheme.primaryOrangeColor,
+                                      overlayColor: MandarinaAppTheme
+                                          .primaryOrangeColor
+                                          .withAlpha(20),
+                                      thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 7,
+                                      ),
+                                      overlayShape:
+                                          const RoundSliderOverlayShape(
+                                            overlayRadius: 16,
+                                          ),
+                                    ),
+                                    child: Slider(
+                                      value: timerVolume.clamp(0.0, 1.0),
+                                      min: 0.0,
+                                      max: 1.0,
+                                      onChanged: onTimerVolumeChanged,
+                                      onChangeEnd: onTimerVolumeChangeEnd,
+                                    ),
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.volume_up_rounded,
+                                  size: 16,
+                                  color: MandarinaAppTheme.primaryOrangeColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
-
+                  /*
                   // ==========================================
                   // BLOQUE 2: Mandarina PET (Dispositivo)
                   // ==========================================
@@ -1160,11 +1267,13 @@ class MandarinaSettingsScreen extends StatelessWidget {
                       MandarinaListTile(
                         icon: Icons.bluetooth_connected_rounded,
                         iconBgColor: petConnected
-                            ? MandarinaColors.orangeLight
-                            : MandarinaColors.background,
+                            ? MandarinaAppTheme.primarySoftColor
+                            : MandarinaAppTheme.whiteColor,
                         iconColor: petConnected
-                            ? MandarinaColors.orangeAccent
-                            : MandarinaColors.textSecondary,
+                            ? MandarinaAppTheme.primaryOrangeColor
+                            : MandarinaAppTheme.blueColor.withValues(
+                                alpha: 0.6,
+                              ),
                         title: 'Mandarina PET',
                         subtitle: petConnected
                             ? 'Dispositivo conectado'
@@ -1339,7 +1448,9 @@ class MandarinaSettingsScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+
+                  */
+                  //const SizedBox(height: 24),
 
                   // ==========================================
                   // BLOQUE 3: Soporte y Comunidad
@@ -1421,8 +1532,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
             style: GoogleFonts.quicksand(
               fontSize: 12,
               fontWeight: FontWeight.w900,
-              color:
-                  MandarinaAppTheme.blueColor, //MandarinaColors.textSecondary,
+              color: MandarinaAppTheme.blueColor,
               letterSpacing: 1.3,
             ),
           ),
@@ -1445,14 +1555,12 @@ class MandarinaCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: MandarinaAppTheme.whiteColor, //MandarinaColors.cardBg,
+        color: MandarinaAppTheme.whiteColor,
         borderRadius: BorderRadius.circular(24),
 
         boxShadow: [
           BoxShadow(
-            color: MandarinaAppTheme.darkBlueColor.withAlpha(
-              40,
-            ), //MandarinaColors.shadowColor,
+            color: MandarinaAppTheme.darkBlueColor.withAlpha(40),
             blurRadius: 16,
             offset: Offset(0, 8),
           ),
@@ -1491,8 +1599,7 @@ class MandarinaListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      splashColor: Colors.transparent, //MandarinaColors.orangeLight,
-      //highlightColor: MandarinaAppTheme.primaryColor,//MandarinaColors.orangeLight.withOpacity(0.5),
+      splashColor: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
         child: Row(
@@ -1503,13 +1610,12 @@ class MandarinaListTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: MandarinaAppTheme.primarySoftColor.withValues(
                   alpha: 0.7,
-                ), //iconBgColor ?? MandarinaColors.iconBgLight,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: MandarinaAppTheme
-                    .primaryOrangeColor, //iconColor ?? MandarinaColors.iconColorWarm,
+                color: MandarinaAppTheme.primaryOrangeColor,
                 size: 22,
               ),
             ),
@@ -1523,8 +1629,7 @@ class MandarinaListTile extends StatelessWidget {
                     style: GoogleFonts.quicksand(
                       fontSize: 15,
                       fontWeight: FontWeight.w800,
-                      color: MandarinaAppTheme
-                          .blueColor, //MandarinaColors.textPrimary,
+                      color: MandarinaAppTheme.blueColor,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -1532,8 +1637,7 @@ class MandarinaListTile extends StatelessWidget {
                     subtitle,
                     style: GoogleFonts.quicksand(
                       fontSize: 12.5,
-                      color: MandarinaAppTheme
-                          .blueColor, //MandarinaColors.textSecondary,
+                      color: MandarinaAppTheme.blueColor,
                     ),
                   ),
                 ],
@@ -1543,8 +1647,7 @@ class MandarinaListTile extends StatelessWidget {
             trailing ??
                 const FaIcon(
                   FontAwesomeIcons.chevronRight,
-                  color: MandarinaAppTheme
-                      .blueColor, //MandarinaColors.textSecondary,
+                  color: MandarinaAppTheme.blueColor,
                   size: 12,
                 ),
           ],
@@ -1581,15 +1684,12 @@ class MandarinaSwitchTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: MandarinaAppTheme.primarySoftColor.withValues(
-                alpha: 0.7,
-              ), //value ? MandarinaColors.orangeLight : MandarinaColors.iconBgLight,
+              color: MandarinaAppTheme.primarySoftColor.withValues(alpha: 0.7),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: MandarinaAppTheme
-                  .primaryOrangeColor, //value ? MandarinaColors.orangeAccent : MandarinaColors.iconColorWarm,
+              color: MandarinaAppTheme.primaryOrangeColor,
               size: 22,
             ),
           ),
@@ -1603,8 +1703,7 @@ class MandarinaSwitchTile extends StatelessWidget {
                   style: GoogleFonts.quicksand(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: MandarinaAppTheme
-                        .blueBisColor, //MandarinaColors.textPrimary,
+                    color: MandarinaAppTheme.blueBisColor,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -1622,13 +1721,11 @@ class MandarinaSwitchTile extends StatelessWidget {
           // Clean custom switch with modern sizing and warm curves
           Switch.adaptive(
             value: value,
-            //activeColor: MandarinaColors.orangeAccent,
             activeThumbColor: MandarinaAppTheme.primaryOrangeColor,
             activeTrackColor: MandarinaAppTheme.primarySoftColor.withValues(
               alpha: 0.8,
-            ), //MandarinaColors.orangeLight,
-            inactiveThumbColor: MandarinaAppTheme
-                .blueColor, //MandarinaColors.textSecondary.withOpacity(0.8),
+            ),
+            inactiveThumbColor: MandarinaAppTheme.blueColor,
             inactiveTrackColor: MandarinaAppTheme.blueColor.withValues(
               alpha: 0.05,
             ),
@@ -1638,7 +1735,7 @@ class MandarinaSwitchTile extends StatelessWidget {
               if (states.contains(WidgetState.selected)) {
                 return MandarinaAppTheme.primaryOrangeColor.withValues(
                   alpha: 0.1,
-                ); //MandarinaColors.orangeAccent.withOpacity(0.2);
+                );
               }
               return MandarinaAppTheme.blueColor.withValues(alpha: 0.1);
             }),
@@ -1658,7 +1755,11 @@ class MandarinaDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.0),
-      child: Divider(color: MandarinaColors.divider, height: 1, thickness: 1),
+      child: Divider(
+        color: MandarinaAppTheme.primarySoftColor,
+        height: 1,
+        thickness: 1,
+      ),
     );
   }
 }
@@ -1673,7 +1774,7 @@ class BatteryIndicator extends StatelessWidget {
     // Beautiful green coloring if battery is healthy, orange/red if low
     Color batteryColor;
     if (level > 40) {
-      batteryColor = MandarinaColors.successGreen;
+      batteryColor = const Color(0xFF43A047);
     } else if (level > 15) {
       batteryColor = Colors.orange;
     } else {

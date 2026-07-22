@@ -30,27 +30,57 @@ class PomoNotifier extends Notifier<PomoState>{
   Timer? _holdingProgressTimer;
   bool _justCancelled = false;
 
-  Future<void> playTimerEndSound() async {
-    final timerSound = ref.read(profileProvider).profile?.timerSound ?? 'bell_sound';
+  Future<void> _configureAudioContextAndVolume([double? volume]) async {
+    final profile = ref.read(profileProvider).profile;
+    final timerVolume = volume ?? profile?.timerVolume ?? 0.8;
     try {
+      await _audioPlayer.setAudioContext(
+        AudioContext(
+          android: const AudioContextAndroid(
+            usageType: AndroidUsageType.alarm,
+            audioFocus: AndroidAudioFocus.gainTransientMayDuck,
+          ),
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.playback,
+          ),
+        ),
+      );
+      await _audioPlayer.setVolume(timerVolume);
+    } catch (_) {}
+  }
+
+  Future<void> playTimerEndSound() async {
+    final profile = ref.read(profileProvider).profile;
+    final timerSound = profile?.timerSound ?? 'bell_sound';
+    final timerVolume = profile?.timerVolume ?? 0.8;
+    try {
+      await _configureAudioContextAndVolume(timerVolume);
       await _audioPlayer.stop();
       await _audioPlayer.play(AssetSource('audio/$timerSound.mp3'));
     } catch (_) {}
   }
 
-  Future<void> preloadTimerSound([String? soundName]) async {
-    final timerSound = soundName ?? ref.read(profileProvider).profile?.timerSound ?? 'bell_sound';
+  Future<void> preloadTimerSound([String? soundName, double? volume]) async {
+    final profile = ref.read(profileProvider).profile;
+    final timerSound = soundName ?? profile?.timerSound ?? 'bell_sound';
+    final timerVolume = volume ?? profile?.timerVolume ?? 0.8;
     try {
+      await _configureAudioContextAndVolume(timerVolume);
       await _audioPlayer.setSource(AssetSource('audio/$timerSound.mp3'));
     } catch (_) {}
   }
 
-  Future<void> playPreviewSound(String soundName) async {
+  Future<void> playPreviewSound([String? soundName, double? volume]) async {
+    final profile = ref.read(profileProvider).profile;
+    final targetSound = soundName ?? profile?.timerSound ?? 'bell_sound';
+    final targetVolume = volume ?? profile?.timerVolume ?? 0.8;
     try {
+      await _configureAudioContextAndVolume(targetVolume);
       await _audioPlayer.stop();
-      await _audioPlayer.play(AssetSource('audio/$soundName.mp3'));
+      await _audioPlayer.play(AssetSource('audio/$targetSound.mp3'));
     } catch (_) {}
   }
+
 
   /*
   void startStopTimer(){
