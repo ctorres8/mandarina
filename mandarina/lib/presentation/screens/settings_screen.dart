@@ -4,6 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
@@ -596,8 +598,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         final languages = [
           'Español (ES)',
           'English (US)',
-          'Português (BR)',
-          'Français (FR)',
+          //'Português (BR)',
+          //'Français (FR)',
         ];
         return SafeArea(
           child: Padding(
@@ -718,6 +720,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showFeedbackForm(BuildContext context) {
     final textController = TextEditingController();
+    bool isLoading = false;
+    bool hasError = false;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: MandarinaAppTheme.whiteColor,
@@ -725,107 +730,267 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: 24,
-            left: 24,
-            right: 24,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Enviar una sugerencia',
-                style: mandarinaTextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: MandarinaAppTheme.primaryColor,
-                ),
+      builder: (bottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setBottomSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 24,
+                left: 24,
+                right: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Tus ideas hacen crecer a Mandarina. Cuéntanos qué te gustaría mejorar o qué función extra esperas de tu PET.',
-                style: mandarinaTextStyle(
-                  fontSize: 13,
-                  color: MandarinaAppTheme.blueColor,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: textController,
-                maxLines: 4,
-                style: mandarinaTextStyle(
-                  color: MandarinaAppTheme.primaryOrangeColor,
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Escribe tu sugerencia aquí...',
-                  hintStyle: mandarinaTextStyle(
-                    color: MandarinaAppTheme.primaryOrangeColor.withAlpha(100),
-                  ),
-                  filled: true,
-                  fillColor: MandarinaAppTheme.whiteBisColor.withAlpha(70),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: MandarinaAppTheme.primaryOrangeColor,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (textController.text.trim().isNotEmpty) {
-                      HapticFeedback.lightImpact(); //.successImpact(); **************************
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '¡Gracias! Sugerencia recibida con éxito.',
-                            style: mandarinaTextStyle(
-                              color: MandarinaAppTheme.whiteColor,
-                            ),
-                          ),
-                          backgroundColor: MandarinaAppTheme.blueColor,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MandarinaAppTheme.primaryOrangeColor,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: Text(
-                    'Enviar sugerencia',
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enviar una sugerencia',
                     style: mandarinaTextStyle(
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: MandarinaAppTheme.whiteColor,
+                      color: MandarinaAppTheme.primaryColor,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tus ideas hacen crecer a Mandarina. Cuéntanos qué te gustaría mejorar o qué función extra esperas de tu PET.',
+                    style: mandarinaTextStyle(
+                      fontSize: 13,
+                      color: MandarinaAppTheme.blueColor,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: textController,
+                    enabled: !isLoading,
+                    maxLines: 4,
+                    onChanged: (val) {
+                      if (hasError && val.trim().isNotEmpty) {
+                        setBottomSheetState(() {
+                          hasError = false;
+                        });
+                      }
+                    },
+                    style: mandarinaTextStyle(
+                      color: MandarinaAppTheme.primaryOrangeColor,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Escribe tu sugerencia aquí...',
+                      hintStyle: mandarinaTextStyle(
+                        color: MandarinaAppTheme.primaryOrangeColor.withAlpha(
+                          100,
+                        ),
+                      ),
+                      errorText: hasError ? 'Escribe tu sugerencia' : null,
+                      errorStyle: mandarinaTextStyle(
+                        color: MandarinaAppTheme.accentColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      filled: true,
+                      fillColor: MandarinaAppTheme.whiteBisColor.withAlpha(70),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: hasError
+                            ? BorderSide(
+                                color: MandarinaAppTheme.accentColor,
+                                width: 1.5,
+                              )
+                            : BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color: hasError
+                              ? Colors.redAccent
+                              : MandarinaAppTheme.primaryOrangeColor,
+                          width: 1.5,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Colors.redAccent,
+                          width: 1.5,
+                        ),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(
+                          color: Colors.redAccent,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              final suggestionText = textController.text.trim();
+                              if (suggestionText.isEmpty) {
+                                setBottomSheetState(() {
+                                  hasError = true;
+                                });
+                                HapticFeedback.vibrate();
+                                return;
+                              }
+
+                              setBottomSheetState(() {
+                                isLoading = true;
+                              });
+
+                              try {
+                                final currentUser =
+                                    FirebaseAuth.instance.currentUser;
+                                final email = currentUser?.email ?? 'anonymous';
+
+                                await Future.wait([
+                                  FirebaseFirestore.instance
+                                      .collection('suggestions')
+                                      .add({
+                                        'message': suggestionText,
+                                        'createdAt':
+                                            FieldValue.serverTimestamp(),
+                                        'email': email,
+                                      }),
+                                  Future.delayed(const Duration(seconds: 1)),
+                                ]);
+
+                                HapticFeedback.lightImpact();
+
+                                if (bottomSheetContext.mounted) {
+                                  Navigator.pop(bottomSheetContext);
+                                }
+
+                                if (context.mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (dialogContext) => AlertDialog(
+                                      backgroundColor:
+                                          MandarinaAppTheme.whiteColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                      title: Text(
+                                        '¡Gracias!',
+                                        style: mandarinaTextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: MandarinaAppTheme.primaryColor,
+                                        ),
+                                      ),
+                                      content: Text(
+                                        '¡Gracias por tu sugerencia! La hemos recibido con éxito.',
+                                        style: mandarinaTextStyle(
+                                          color: MandarinaAppTheme.blueColor,
+                                          height: 1.4,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      actions: [
+                                        ElevatedButton(
+                                          onPressed: () =>
+                                              Navigator.pop(dialogContext),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: MandarinaAppTheme
+                                                .primaryOrangeColor,
+                                            elevation: 0,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'continuar',
+                                            style: mandarinaTextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color:
+                                                  MandarinaAppTheme.whiteColor,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                setBottomSheetState(() {
+                                  isLoading = false;
+                                });
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Error al enviar la sugerencia: $e',
+                                        style: mandarinaTextStyle(
+                                          color: MandarinaAppTheme.whiteColor,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.redAccent,
+                                      behavior: SnackBarBehavior.floating,
+                                      margin: EdgeInsets.only(
+                                        bottom:
+                                            MediaQuery.of(
+                                              context,
+                                            ).viewInsets.bottom +
+                                            90,
+                                        left: 24,
+                                        right: 24,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MandarinaAppTheme.primaryOrangeColor,
+                        disabledBackgroundColor: MandarinaAppTheme
+                            .primaryOrangeColor
+                            .withAlpha(150),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: MandarinaAppTheme.whiteColor,
+                              ),
+                            )
+                          : Text(
+                              'Enviar sugerencia',
+                              style: mandarinaTextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: MandarinaAppTheme.whiteColor,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -1039,24 +1204,17 @@ class MandarinaSettingsScreen extends StatelessWidget {
           slivers: [
             // --- PREMIUM APPBAR ---
             SliverAppBar(
+              systemOverlayStyle: SystemUiOverlayStyle.light,
               floating: true,
               //snap: true,
               pinned: false,
               iconTheme: const IconThemeData(
                 color: MandarinaAppTheme.whiteColor,
               ),
-              title: Text(
-                'Ajustes',
-                style: GoogleFonts.quicksand(
-                  color: MandarinaAppTheme.whiteColor,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                ),
-              ), //Image.asset('assets/images/logo_blanco.png',scale:18,),
+              title: Image.asset('assets/images/logo_blanco.png', scale: 18),
               centerTitle: true,
               elevation: 0,
-              backgroundColor:
-                  MandarinaAppTheme.primaryColor, //backgroundSettingsColor,
+              backgroundColor: MandarinaAppTheme.backgroundSettingsColor,
               surfaceTintColor: Colors.transparent,
               leading: Builder(
                 builder: (context) => IconButton(
@@ -1525,8 +1683,8 @@ class MandarinaSettingsScreen extends StatelessWidget {
             ),
           ),
           */
-          Image.asset('assets/images/logo_naranja.png', scale: 24),
-          const SizedBox(width: 8),
+          //Image.asset('assets/images/logo_blanco.png', scale: 24),
+          //const SizedBox(width: 8),
           Text(
             title.toUpperCase(),
             style: GoogleFonts.quicksand(
