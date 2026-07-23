@@ -11,6 +11,7 @@ class UserProfileModel {
   final int focusMinutes;
   final int affinityLevel;
   final bool hasCompletedTutorial;
+  final bool hasAcceptedTerms;
   final String timerSound;
   final double timerVolume;
 
@@ -27,6 +28,7 @@ class UserProfileModel {
     required this.focusMinutes,
     required this.affinityLevel,
     this.hasCompletedTutorial = false,
+    this.hasAcceptedTerms = false,
     this.timerSound = 'bell_sound',
     this.timerVolume = 0.8,
   });
@@ -44,6 +46,7 @@ class UserProfileModel {
     int? focusMinutes,
     int? affinityLevel,
     bool? hasCompletedTutorial,
+    bool? hasAcceptedTerms,
     String? timerSound,
     double? timerVolume,
   }) {
@@ -60,6 +63,7 @@ class UserProfileModel {
       focusMinutes: focusMinutes ?? this.focusMinutes,
       affinityLevel: affinityLevel ?? this.affinityLevel,
       hasCompletedTutorial: hasCompletedTutorial ?? this.hasCompletedTutorial,
+      hasAcceptedTerms: hasAcceptedTerms ?? this.hasAcceptedTerms,
       timerSound: timerSound ?? this.timerSound,
       timerVolume: timerVolume ?? this.timerVolume,
     );
@@ -78,6 +82,7 @@ class UserProfileModel {
       'focusMinutes': focusMinutes,
       'affinityLevel': affinityLevel,
       'hasCompletedTutorial': hasCompletedTutorial,
+      'hasAcceptedTerms': hasAcceptedTerms,
       'timer_sound': timerSound,
       'timer_volume': timerVolume,
     };
@@ -97,6 +102,7 @@ class UserProfileModel {
       focusMinutes: map['focusMinutes'] as int? ?? 0,
       affinityLevel: map['affinityLevel'] as int? ?? 0,
       hasCompletedTutorial: map['hasCompletedTutorial'] as bool? ?? false,
+      hasAcceptedTerms: map['hasAcceptedTerms'] as bool? ?? map['acceptedTerms'] as bool? ?? false,
       timerSound: map['timer_sound'] as String? ?? 'bell_sound',
       timerVolume: (map['timer_volume'] as num?)?.toDouble() ?? 0.8,
     );
