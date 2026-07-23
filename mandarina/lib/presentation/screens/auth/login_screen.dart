@@ -6,10 +6,7 @@ import 'package:lottie/lottie.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:mandarina/data/repositories/user_repository.dart';
-import 'package:mandarina/presentation/widgets/tyc_bottomsheet.dart';
-import 'package:mandarina/presentation/screens/home_screen.dart';
+import 'package:mandarina/presentation/screens/auth/auth_tyc_helper.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -231,119 +228,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     onPressed: isLoading
                         ? null
-                        : () async {
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            ref.read(preventRedirectProvider.notifier).state =
-                                true;
-                            final success = await ref
-                                .read(authControllerProvider.notifier)
-                                .signInWithGoogle();
-                            if (success && context.mounted) {
-                              final user = ref
-                                  .read(firebaseAuthServiceProvider)
-                                  .currentUser;
-                              if (user != null) {
-                                final userRepository = ref.read(
-                                  userRepositoryProvider,
-                                );
-                                final doc = await FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(user.uid)
-                                    .get();
-                                final bool hasAccepted =
-                                    doc.exists &&
-                                    (doc.data()?['acceptedTerms'] == true);
-
-                                if (hasAccepted) {
-                                  ref
-                                          .read(
-                                            preventRedirectProvider.notifier,
-                                          )
-                                          .state =
-                                      false;
-                                } else {
-                                  bool accepted = false;
-                                  if (context.mounted) {
-                                    await showTermsBottomSheet(
-                                      context,
-                                      onAccepted: () {
-                                        accepted = true;
-                                      },
-                                    );
-                                  }
-                                  if (accepted) {
-                                    await userRepository
-                                        .createUserProfileAfterSignup(
-                                          user.uid,
-                                          user.email ?? '',
-                                        );
-                                    ref
-                                            .read(
-                                              preventRedirectProvider.notifier,
-                                            )
-                                            .state =
-                                        false;
-                                    if (context.mounted) {
-                                      context.goNamed(HomeScreen.name);
-                                    }
-                                  } else {
-                                    await ref
-                                        .read(authControllerProvider.notifier)
-                                        .signOut();
-                                    ref
-                                            .read(
-                                              preventRedirectProvider.notifier,
-                                            )
-                                            .state =
-                                        false;
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Debes aceptar los Términos y Condiciones para ingresar.',
-                                            style: GoogleFonts.quicksand(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          backgroundColor:
-                                              MandarinaAppTheme.blueColor,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                }
-                              } else {
-                                ref
-                                        .read(preventRedirectProvider.notifier)
-                                        .state =
-                                    false;
-                              }
-                            } else {
-                              ref.read(preventRedirectProvider.notifier).state =
-                                  false;
-                              if (context.mounted) {
-                                final errorMsg = ref
-                                    .read(authControllerProvider)
-                                    .errorMessage;
-                                if (errorMsg != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        errorMsg,
-                                        style: GoogleFonts.quicksand(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      backgroundColor:
-                                          MandarinaAppTheme.blueColor,
-                                    ),
-                                  );
-                                }
-                              }
-                            }
-                          },
+                        : () => handleGoogleAuthTermsFlow(
+                              context,
+                              ref,
+                              preAcceptedTerms: false,
+                            ),
                     child: Text(
                       'Ingresar con Google',
                       style: mandarinaTextStyle(

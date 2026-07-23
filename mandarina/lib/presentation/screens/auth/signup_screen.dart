@@ -8,6 +8,7 @@ import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/screens/home_screen.dart';
 import 'package:mandarina/presentation/viewmodel/auth_providers.dart';
 import 'package:mandarina/presentation/widgets/tyc_bottomsheet.dart';
+import 'package:mandarina/presentation/screens/auth/auth_tyc_helper.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -408,33 +409,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ),
                           onPressed: (isLoading || !_termsAccepted)
                               ? null
-                              : () async {
-                                  FocusManager.instance.primaryFocus?.unfocus();
-                                  final success = await ref
-                                      .read(authControllerProvider.notifier)
-                                      .signInWithGoogle();
-                                  if (!success && context.mounted) {
-                                    final errorMsg = ref
-                                        .read(authControllerProvider)
-                                        .errorMessage;
-                                    if (errorMsg != null) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            errorMsg,
-                                            style: GoogleFonts.quicksand(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          backgroundColor:
-                                              MandarinaAppTheme.blueColor,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                              : () => handleGoogleAuthTermsFlow(
+                                    context,
+                                    ref,
+                                    preAcceptedTerms: _termsAccepted,
+                                  ),
                           child: Text(
                             'Ingresar con Google',
                             style: mandarinaTextStyle(

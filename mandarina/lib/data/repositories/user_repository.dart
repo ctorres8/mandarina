@@ -75,7 +75,7 @@ class UserRepository {
   }
 
   Future<void> createUserProfileAfterSignup(String userId, String email) async {
-    final String initialName = email.split('@').first;
+    final String initialName = email.isNotEmpty ? email.split('@').first : 'Usuario Mandarina';
     final defaultProfile = UserProfileModel(
       id: userId,
       coverImageUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
@@ -90,13 +90,33 @@ class UserRepository {
       focusMinutes: 0,
       affinityLevel: 1,
       hasCompletedTutorial: false,
+      hasAcceptedTerms: true,
     );
 
     final Map<String, dynamic> data = defaultProfile.toMap();
-    data['acceptedTerms'] = true;
     data['acceptedTermsAt'] = FieldValue.serverTimestamp();
 
-    await _firestore.collection('users').doc(userId).set(data);
+    await _firestore.collection('users').doc(userId).set(data, SetOptions(merge: true));
+  }
+
+  Future<void> markTermsAccepted(String userId) async {
+    await _firestore.collection('users').doc(userId).set({
+      'hasAcceptedTerms': true,
+      'acceptedTermsAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  Future<bool> checkUserHasAcceptedTerms(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      if (!doc.exists || doc.data() == null) {
+        return false;
+      }
+      final data = doc.data()!;
+      return (data['hasAcceptedTerms'] == true) || (data['acceptedTerms'] == true);
+    } catch (_) {
+      return false;
+    }
   }
 
   Stream<UserProfileModel> streamProfile(String userId) {
