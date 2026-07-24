@@ -192,6 +192,27 @@ class UserRepository {
       'timer_volume': timerVolume,
     }, SetOptions(merge: true));
   }
+
+  Future<void> incrementUserMetrics(
+    String userId, {
+    int focusMinutes = 0,
+    int completedTasks = 0,
+  }) async {
+    if (focusMinutes <= 0 && completedTasks <= 0) return;
+
+    final Map<String, dynamic> updates = {};
+    if (focusMinutes > 0) {
+      updates['focusMinutes'] = FieldValue.increment(focusMinutes);
+    }
+    if (completedTasks > 0) {
+      updates['completedTasks'] = FieldValue.increment(completedTasks);
+    }
+
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .set(updates, SetOptions(merge: true));
+  }
 }
 
 

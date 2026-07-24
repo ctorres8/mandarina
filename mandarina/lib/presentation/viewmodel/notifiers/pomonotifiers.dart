@@ -154,8 +154,12 @@ class PomoNotifier extends Notifier<PomoState> with WidgetsBindingObserver {
   }
 
   void _onTimerFinished() {
+    final minutes = (state.initialFocusedTime / 60).round();
     _stopTimer();
     incrementSesionesCompletadas();
+    if (minutes > 0) {
+      ref.read(profileProvider.notifier).incrementMetrics(focusMinutes: minutes);
+    }
     resetTimer();
     playTimerEndSound();
   }

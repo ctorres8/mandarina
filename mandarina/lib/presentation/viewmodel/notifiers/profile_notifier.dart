@@ -139,6 +139,40 @@ class ProfileNotifier extends Notifier<ProfileState> {
       );
     }
   }
+
+  Future<void> incrementMetrics({
+    int focusMinutes = 0,
+    int completedTasks = 0,
+  }) async {
+    if (focusMinutes <= 0 && completedTasks <= 0) return;
+
+    final currentProfile = state.profile;
+    if (currentProfile == null) return;
+
+    final user = ref.read(firebaseAuthServiceProvider).currentUser;
+    final userId = user?.uid ?? currentProfile.id;
+
+    final updatedProfile = currentProfile.copyWith(
+      focusMinutes: currentProfile.focusMinutes + focusMinutes,
+      completedTasks: currentProfile.completedTasks + completedTasks,
+    );
+
+    // Actualización optimista del estado local para refrescar la UI inmediatamente
+    state = state.copyWith(profile: updatedProfile);
+
+    try {
+      final repository = ref.read(userRepositoryProvider);
+      await repository.incrementUserMetrics(
+        userId,
+        focusMinutes: focusMinutes,
+        completedTasks: completedTasks,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        errorMessage: 'Error al actualizar las métricas en Firestore: ${e.toString()}',
+      );
+    }
+  }
 }
 
 

@@ -375,6 +375,21 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                             onPressed: isExporting
                                 ? null
                                 : () {
+                                    final minutes =
+                                        (workflowState.elapsedDuration.inSeconds /
+                                                60.0)
+                                            .round();
+                                    final tasksCount = workflowState.tasks.length;
+
+                                    if (minutes > 0 || tasksCount > 0) {
+                                      ref
+                                          .read(profileProvider.notifier)
+                                          .incrementMetrics(
+                                            focusMinutes: minutes,
+                                            completedTasks: tasksCount,
+                                          );
+                                    }
+
                                     Navigator.of(context).pop();
                                     ref.read(workflowProvider.notifier).reset();
                                   },
@@ -389,7 +404,7 @@ class _FreelancerScreenState extends ConsumerState<FreelancerScreen> {
                               elevation: 0,
                             ),
                             child: Text(
-                              'Cerrar',
+                              'Guardar y Cerrar',
                               style: GoogleFonts.quicksand(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 18,
