@@ -14,6 +14,7 @@ import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mandarina/presentation/viewmodel/tutorial_provider.dart';
 import 'package:mandarina/presentation/widgets/tutorial_overlay.dart';
+import 'package:mandarina/presentation/widgets/feedback_showdialog.dart';
 import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -49,6 +50,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final sportState = ref.watch(sportProvider);
     final sportNotifier = ref.read(sportProvider.notifier);
     final tutorialState = ref.watch(tutorialProvider);
+
+    ref.listen<PomoState>(pomoProvider, (previous, next) {
+      if (previous != null && next.sesionesCompletadas > previous.sesionesCompletadas) {
+        showFeedbackDialog(context);
+      }
+    });
+
+    ref.listen<SportState>(sportProvider, (previous, next) {
+      if (previous != null &&
+          previous.isTimerRunning &&
+          !next.isTimerRunning &&
+          next.seriesCompletadas == next.seriesTotales &&
+          previous.seriesCompletadas < next.seriesTotales) {
+        showFeedbackDialog(context);
+      }
+    });
 
     return Stack(
       children: [
