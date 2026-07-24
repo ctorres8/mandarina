@@ -12,6 +12,7 @@ import 'package:mandarina/presentation/viewmodel/notifiers/profile_notifier.dart
 import 'package:mandarina/presentation/viewmodel/state/profile_state.dart';
 
 import 'package:mandarina/core/services/export_service.dart';
+import 'package:mandarina/presentation/viewmodel/notifiers/keep_screen_on_notifier.dart';
 
 final pomoProvider = NotifierProvider<PomoNotifier, PomoState>(
   PomoNotifier.new,
@@ -30,6 +31,9 @@ final localeProvider = NotifierProvider<LocaleNotifier, Locale>(
 );
 final profileProvider = NotifierProvider<ProfileNotifier, ProfileState>(
   ProfileNotifier.new,
+);
+final keepScreenOnProvider = NotifierProvider<KeepScreenOnNotifier, bool>(
+  KeepScreenOnNotifier.new,
 );
 
 final exportServiceProvider = Provider((ref) => ExportService());

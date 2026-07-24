@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/core/router/app_router.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:mandarina/presentation/viewmodel/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +17,7 @@ class MandarinaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    ref.watch(keepScreenOnProvider);
 
     return MaterialApp.router(
       title: 'Mandarina Ecosistema',

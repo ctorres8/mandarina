@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:mandarina/core/theme/app_theme.dart';
 import 'package:mandarina/presentation/widgets/drawerMenu.dart';
 import 'package:mandarina/presentation/viewmodel/notifiers/phrases_notifier.dart';
@@ -56,7 +56,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   // --- Local State Variables (to be bound to Riverpod / State Management in prod) ---
-  bool _keepScreenOn = false;
   String _selectedLanguage = 'Español (ES)';
   String _firstDayOfWeek = 'Lunes';
   double? _localTimerVolume;
@@ -72,6 +71,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
+    final keepScreenOn = ref.watch(keepScreenOnProvider);
     final currentTimerSound = profileState.profile?.timerSound ?? 'bell_sound';
     final currentTimerVolume =
         _localTimerVolume ?? profileState.profile?.timerVolume ?? 0.8;
@@ -90,7 +90,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Scaffold(
         body: MandarinaSettingsScreen(
           // --- Values ---
-          keepScreenOn: _keepScreenOn,
+          keepScreenOn: keepScreenOn,
           selectedLanguage: _selectedLanguage,
           firstDayOfWeek: _firstDayOfWeek,
           timerSound: currentTimerSound,
@@ -141,9 +141,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           },
           onKeepScreenOnChanged: (val) {
             HapticFeedback.mediumImpact();
-            setState(() {
-              _keepScreenOn = val;
-            });
+            ref.read(keepScreenOnProvider.notifier).setKeepScreenOn(val);
           },
           onChangeLanguagePressed: () {
             HapticFeedback.lightImpact();
@@ -199,7 +197,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _showDialog(
               context,
               'Espacio de Notion',
-              'Se abrirá el navegador externo con la documentación oficial del proyecto:\nhttps://notion.so/mandarina-project',
+              'Se abrirá el navegador externo con la documentación oficial del proyecto:\nhttps://mandarinaapp.notion.site/',
+              onConfirm: () => _launchNotionUrl(context),
             );
           },
           onAboutMandarinaPressed: () {
@@ -211,8 +210,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _launchNotionUrl(BuildContext context) async {
+    final Uri url = Uri.parse('https://mandarinaapp.notion.site/');
+    try {
+      final bool launched = await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'No se pudo abrir el enlace de Notion.',
+                style: mandarinaTextStyle(fontWeight: FontWeight.w600),
+              ),
+              backgroundColor: MandarinaAppTheme.blueColor,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error al abrir el navegador.',
+              style: mandarinaTextStyle(fontWeight: FontWeight.w600),
+            ),
+            backgroundColor: MandarinaAppTheme.blueColor,
+          ),
+        );
+      }
+    }
+  }
+
   // --- UI Helper Dialogs for Interactive Demo ---
-  void _showDialog(BuildContext context, String title, String text) {
+  void _showDialog(
+    BuildContext context,
+    String title,
+    String text, {
+    VoidCallback? onConfirm,
+  }) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -222,7 +261,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title,
           style: mandarinaTextStyle(
             fontWeight: FontWeight.bold,
-            color: MandarinaAppTheme.primaryColor,
+            color: MandarinaAppTheme.primaryOrangeColor,
           ),
         ),
         content: Text(
@@ -235,12 +274,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              if (onConfirm != null) {
+                onConfirm();
+              }
+            },
             child: Text(
               'Entendido',
               style: mandarinaTextStyle(
                 fontWeight: FontWeight.bold,
-                color: MandarinaAppTheme.accentColor,
+                color: MandarinaAppTheme.primaryOrangeColor,
               ),
             ),
           ),
@@ -754,7 +798,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tus ideas hacen crecer a Mandarina. Cuéntanos qué te gustaría mejorar o qué función extra esperas de tu PET.',
+                    'Tus ideas hacen crecer a Mandarina. Cuéntanos si tuviste algún problema, qué te gustaría mejorar o qué función extra esperas de la app.',
                     style: mandarinaTextStyle(
                       fontSize: 13,
                       color: MandarinaAppTheme.blueColor,
@@ -1008,22 +1052,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Beautiful Custom Mandarina Vector Logo inside Flutter
-              Image.asset('assets/images/logo_naranja.png', scale: 4),
+              Image.asset(
+                'assets/images/logo_naranja.png',
+                scale: 5,
+                //opacity: const AlwaysStoppedAnimation<double>(0.2),
+              ),
               const SizedBox(height: 10),
               Text(
                 'Mandarina',
                 style: mandarinaTextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: MandarinaAppTheme.primaryColor,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Tu ecosistema de productividad',
-                style: mandarinaTextStyle(
-                  fontSize: 13,
-                  color: MandarinaAppTheme.primaryColor,
+                  color: MandarinaAppTheme.primaryOrangeColor,
                 ),
               ),
               const SizedBox(height: 20),
@@ -1055,6 +1095,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
+              /*
               const SizedBox(height: 24),
               Text(
                 'Diseñada para potenciar tu\nespacio de trabajo.',
@@ -1065,14 +1106,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   color: MandarinaAppTheme.primaryColor,
                 ),
               ),
+              */
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cerrar',
                   style: mandarinaTextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: MandarinaAppTheme.blueColor,
+                    color: MandarinaAppTheme.primaryOrangeColor,
                   ),
                 ),
               ),
@@ -1091,8 +1134,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           label,
           style: mandarinaTextStyle(
             fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: MandarinaAppTheme.primaryColor,
+            fontWeight: FontWeight.w600,
+            color: MandarinaAppTheme.primaryOrangeColor,
           ),
         ),
         Text(
@@ -1100,7 +1143,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           style: mandarinaTextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w800,
-            color: MandarinaAppTheme.blueBisColor,
+            color: MandarinaAppTheme.primaryOrangeColor,
           ),
         ),
       ],
@@ -1221,7 +1264,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
                   onPressed: () => Scaffold.of(context).openDrawer(),
                   icon: const Icon(
                     Icons.menu,
-                    color: MandarinaAppTheme.whiteColor,
+                    color: MandarinaAppTheme.blueColor,
                   ),
                 ),
               ),
@@ -1261,6 +1304,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
                   _buildSectionHeader('Ajustes Generales'),
                   MandarinaCard(
                     children: [
+                      /*
                       MandarinaListTile(
                         icon: Icons.app_blocking_rounded,
                         title: 'Lista de apps permitidas',
@@ -1268,6 +1312,7 @@ class MandarinaSettingsScreen extends StatelessWidget {
                         onTap: onManageAllowedAppsPressed,
                       ),
                       const MandarinaDivider(),
+                      */
                       MandarinaListTile(
                         icon: Icons.format_quote_rounded,
                         title: 'Frases personalizadas',
@@ -1626,7 +1671,8 @@ class MandarinaSettingsScreen extends StatelessWidget {
                       MandarinaListTile(
                         icon: Icons.menu_book_rounded,
                         title: 'Página de Notion',
-                        subtitle: 'Documentación oficial y guías',
+                        subtitle:
+                            'Documentación oficial e información del proyecto',
                         trailing: Icon(
                           Icons.open_in_new_rounded,
                           color: MandarinaAppTheme.blueColor,

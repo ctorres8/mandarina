@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/widgets.dart';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,17 +8,24 @@ import 'package:mandarina/presentation/viewmodel/providers.dart';
 import 'package:mandarina/presentation/viewmodel/state/pomo_state.dart';
 
 
-class PomoNotifier extends Notifier<PomoState>{
+class PomoNotifier extends Notifier<PomoState> with WidgetsBindingObserver {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  DateTime? _targetEndTime;
+  Timer? _timer;
+  Timer? _cancelTimer;
+  Timer? _holdingProgressTimer;
+  bool _justCancelled = false;
 
   @override
   PomoState build() {
+    WidgetsBinding.instance.addObserver(this);
     ref.onDispose(() {
+      WidgetsBinding.instance.removeObserver(this);
       _timer?.cancel();
       _cancelTimer?.cancel();
       _holdingProgressTimer?.cancel();
       _audioPlayer.dispose();
-    }); // Limpio el timer y el reproductor al cerrar el notifier (o la app)
+    });
 
     // Precargar la fuente de audio configurada
     preloadTimerSound();
@@ -25,10 +33,24 @@ class PomoNotifier extends Notifier<PomoState>{
     return PomoState();
   }
 
-  Timer? _timer;
-  Timer? _cancelTimer;
-  Timer? _holdingProgressTimer;
-  bool _justCancelled = false;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkAppResumed();
+    }
+  }
+
+  void _checkAppResumed() {
+    if (!state.isRunning || _targetEndTime == null) return;
+    final now = DateTime.now();
+    final remainingSeconds = _targetEndTime!.difference(now).inSeconds;
+
+    if (remainingSeconds <= 0) {
+      _onTimerFinished();
+    } else {
+      state = state.copyWith(focusedTime: remainingSeconds.toDouble());
+    }
+  }
 
   Future<void> _configureAudioContextAndVolume([double? volume]) async {
     final profile = ref.read(profileProvider).profile;
@@ -81,17 +103,6 @@ class PomoNotifier extends Notifier<PomoState>{
     } catch (_) {}
   }
 
-
-  /*
-  void startStopTimer(){
-    if(!state.timerIsRunning){
-      startTimer();
-    }
-    else{
-      _timer.cancel();
-    }
-  }
-  */
   void toggleTimer(){
     if(state.isRunning){
       _stopTimer();
@@ -111,59 +122,62 @@ class PomoNotifier extends Notifier<PomoState>{
     _startTimer();
   }
 
-  void _startTimer()
-  {
-
+  void _startTimer() {
     const oneSecond = Duration(seconds: 1);
+    final durationSeconds = state.focusedTime.toInt();
+    _targetEndTime = DateTime.now().add(Duration(seconds: durationSeconds));
 
     state = state.copyWith(
       isRunning: true,
       initialFocusedTime: state.focusedTime,
-    ); // pongo el estado como corriendo y guardo el tiempo inicial
+    );
 
-    _timer=Timer.periodic(
-      oneSecond, 
-      (Timer timer){
-        if(state.countTimer<=0){
-          _stopTimer();
-          incrementSesionesCompletadas(); // Incrementa sesiones completadas al finalizar con éxito
-          resetTimer();
-          playTimerEndSound();
-        }
-        else{
-          state=state.copyWith(focusedTime: state.focusedTime-1); // Decremento el tiempo de focus
-        }
-      }
+    _timer?.cancel();
+    _timer = Timer.periodic(
+      oneSecond,
+      (Timer timer) {
+        _tick();
+      },
     );
   }
 
+  void _tick() {
+    if (_targetEndTime == null) return;
+    final now = DateTime.now();
+    final remainingSeconds = _targetEndTime!.difference(now).inSeconds;
 
+    if (remainingSeconds <= 0) {
+      _onTimerFinished();
+    } else {
+      state = state.copyWith(focusedTime: remainingSeconds.toDouble());
+    }
+  }
 
-  void _stopTimer(){
+  void _onTimerFinished() {
+    _stopTimer();
+    incrementSesionesCompletadas();
+    resetTimer();
+    playTimerEndSound();
+  }
+
+  void _stopTimer() {
     _timer?.cancel();
+    _targetEndTime = null;
     state = state.copyWith(isRunning: false);
   }
 
-  void resetTimer(){
+  void resetTimer() {
     _stopTimer();
-    state=state.copyWith(
+    state = state.copyWith(
       focusedTime: 1500.0,
       initialFocusedTime: 1500.0,
-    ); //reseteo con 25 minutos
+    );
   }
 
   void startCancelCountdown(){
-    //_cancelTimer?.cancel(); // Cancelo cualquier instancia huerfana previa
     _holdingProgressTimer?.cancel();
     _justCancelled = false;
 
-    /*
-    _cancelTimer = Timer(const Duration(seconds: 1),(){
-      _justCancelled = true;
-      _holdingProgressTimer?.cancel();
-      resetTimer();
-    }); // Luego de 1 segundo reinicia el cronómetro
-    */
     state = state.copyWith(holdingProgress: 0.0);
 
     const int tickIntervalMs = 30;
@@ -174,8 +188,8 @@ class PomoNotifier extends Notifier<PomoState>{
       if(nextProgress>= 1.0){
         timer.cancel();
         _justCancelled = true;
-        state = state.copyWith(holdingProgress: 0.0); //limpio la barra de carga
-        resetTimer(); //reseteo el timer
+        state = state.copyWith(holdingProgress: 0.0);
+        resetTimer();
       }
       else{
         state = state.copyWith(holdingProgress: nextProgress);
@@ -184,12 +198,6 @@ class PomoNotifier extends Notifier<PomoState>{
   }
 
   void stopCancelCoundown(){
-    // Se ejecuta si se levanta el dedo antes de cumplir el tiempo de cancelación (1 segundo)
-    /*
-    if(_cancelTimer != null && _cancelTimer!.isActive){
-      _cancelTimer!.cancel();
-    }
-    */
     if(_holdingProgressTimer != null && _holdingProgressTimer!.isActive)
     {
       _holdingProgressTimer!.cancel();
@@ -206,7 +214,6 @@ class PomoNotifier extends Notifier<PomoState>{
     state = state.copyWith(currentTask: selectedTask);
   }
 
-
   String formatTime(){
     final minutes = (state.focusedTime~/60).toInt().toString().padLeft(2,'0');
     final seconds = (state.focusedTime % 60).toInt().toString().padLeft(2,'0');
@@ -219,27 +226,24 @@ class PomoNotifier extends Notifier<PomoState>{
   }
 
   void setTime(double seconds) {
-    if (state.isRunning) return; // No permitir cambios si está corriendo
+    if (state.isRunning) return;
 
     final isStudyOrWork = state.currentTask.title == 'Estudio' || state.currentTask.title == 'Trabajo';
     final isRest = state.currentTask.title == 'Descanso';
 
     if (isStudyOrWork) {
-      // Rango permitido estrictamente 20-60 minutos con saltos fijos de 5 minutos (300 segundos)
       const int step = 300;
       double roundedSeconds = (seconds / step).roundToDouble() * step;
-      if (roundedSeconds < 1200) roundedSeconds = 1200; // Mínimo 20 minutos
-      if (roundedSeconds > 3600) roundedSeconds = 3600; // Máximo 60 minutos
+      if (roundedSeconds < 1200) roundedSeconds = 1200;
+      if (roundedSeconds > 3600) roundedSeconds = 3600;
       state = state.copyWith(focusedTime: roundedSeconds, initialFocusedTime: roundedSeconds);
     } else if (isRest) {
-      // Rango permitido para descanso 5-30 minutos con saltos fijos de 5 minutos
       const int step = 300;
       double roundedSeconds = (seconds / step).roundToDouble() * step;
-      if (roundedSeconds < 300) roundedSeconds = 300; // Mínimo 5 minutos
-      if (roundedSeconds > 1800) roundedSeconds = 1800; // Máximo 30 minutos
+      if (roundedSeconds < 300) roundedSeconds = 300;
+      if (roundedSeconds > 1800) roundedSeconds = 1800;
       state = state.copyWith(focusedTime: roundedSeconds, initialFocusedTime: roundedSeconds);
     } else {
-      // Deporte u otros
       const int step = 300;
       double roundedSeconds = (seconds / step).roundToDouble() * step;
       if (roundedSeconds < 300) roundedSeconds = 300;
@@ -247,8 +251,6 @@ class PomoNotifier extends Notifier<PomoState>{
       state = state.copyWith(focusedTime: roundedSeconds, initialFocusedTime: roundedSeconds);
     }
   }
-
-
 
   void setTimerOnOff (bool stateTimer)
   {
