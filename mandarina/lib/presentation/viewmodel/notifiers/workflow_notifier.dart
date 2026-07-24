@@ -1,21 +1,36 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mandarina/presentation/viewmodel/state/workflow_state.dart';
 
-class WorkflowNotifier extends Notifier<WorkflowState> {
+class WorkflowNotifier extends Notifier<WorkflowState> with WidgetsBindingObserver {
   Timer? _timer;
   DateTime? _lastTickTime;
-
   Timer? _holdingProgressTimer;
 
   @override
   WorkflowState build() {
+    WidgetsBinding.instance.addObserver(this);
     ref.onDispose(() {
+      WidgetsBinding.instance.removeObserver(this);
       _timer?.cancel();
       _holdingProgressTimer?.cancel();
     });
     return const WorkflowState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (this.state.status == WorkflowTimerStatus.running && _lastTickTime != null) {
+        final now = DateTime.now();
+        final delta = now.difference(_lastTickTime!);
+        _lastTickTime = now;
+        this.state = this.state.copyWith(
+          elapsedDuration: this.state.elapsedDuration + delta,
+        );
+      }
+    }
   }
 
   void toggleTimer() {
@@ -79,8 +94,6 @@ class WorkflowNotifier extends Notifier<WorkflowState> {
     state = state.copyWith(holdingProgress: 0.0, longPressTriggered: false);
 
     const int tickIntervalMs = 30;
-    // We want the progress bar to complete in exactly 1.0 seconds (1000ms).
-    // In each tick of 30ms, the progress increases by 30 / 1000 = 0.03.
     _holdingProgressTimer = Timer.periodic(const Duration(milliseconds: tickIntervalMs), (timer) {
       final nextProgress = state.holdingProgress + (tickIntervalMs / 1000.0);
       if (nextProgress >= 1.0) {

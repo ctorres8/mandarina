@@ -12,7 +12,6 @@ import 'package:mandarina/presentation/viewmodel/notifiers/profile_notifier.dart
 import 'package:mandarina/presentation/viewmodel/state/profile_state.dart';
 
 import 'package:mandarina/core/services/export_service.dart';
-
 import 'package:mandarina/presentation/viewmodel/notifiers/keep_screen_on_notifier.dart';
 
 final pomoProvider = NotifierProvider<PomoNotifier, PomoState>(
